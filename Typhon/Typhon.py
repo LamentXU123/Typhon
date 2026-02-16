@@ -911,6 +911,9 @@ def bypassREAD(
     if filepath == "":
         logger.critical("[!] filepath is empty, nothing to read.")
         quit(1)
+    if RCE_method != "exec" and RCE_method != "eval":
+        logger.critical("[!] RCE method is not supported, only support exec or eval.")
+        quit(1)
     generated_path = bypassMAIN(
         local_scope,
         endpoint=filepath,
@@ -926,9 +929,6 @@ def bypassREAD(
         print_all_payload=print_all_payload,
         log_level=log_level,
     )
-    if RCE_method != "exec" and RCE_method != "eval":
-        logger.critical("[!] RCE method is not supported, only support exec or eval.")
-        quit(1)
     try_to_restore("filecontentsio", cmd=filepath)
     if RCE_method == "exec":
         try_to_restore("filecontentstring", cmd=filepath)
