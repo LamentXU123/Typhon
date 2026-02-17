@@ -535,8 +535,20 @@ Try to bypass blacklist with them. Please be paitent.",
     logger.info("[*] string literals found: %s", string_dict)
     allowed_letters.extend(string_dict.keys())
     for i in digits:
-        if not is_blacklisted(str(i)):
-            int_dict.update({i: str(i)})
+        if not is_blacklisted(i):
+            int_dict.update({int(i): i})
+            continue
+        # tyr bool bypass
+        if i == 0 and is_blacklisted("False"):
+            if not is_blacklisted('False.real'):
+                int_dict.update({int(i): 'False.real'})
+            if not is_blacklisted('False.imag'):
+                int_dict.update({int(i): 'False.imag'})
+            if not is_blacklisted('+'):
+                int_dict.update({int(i): 'False+False'})
+        else:
+            if not is_blacklisted(f"True" + '+True' * int(i-1)):
+                int_dict.update({int(i): f"True" + '+True' * int(i-1)})
         # TODO: bypassers to get ints
     logger.info("[*] int literals found: %s", int_dict)
 
