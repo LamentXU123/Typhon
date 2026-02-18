@@ -557,7 +557,7 @@ Try to bypass blacklist with them. Please be paitent.",
             if not is_blacklisted('+'):
                 int_dict.update({int(i): 'False+False'})
         else:
-            if not is_blacklisted(f"True" + '+True' * int(i-1)):
+            if not is_blacklisted(f"True" + '+True' * (int(i)-1)):
                 int_dict.update({int(i): f"True" + '+True' * int(i-1)})
         # TODO: bypassers to get ints
     logger.info("[*] int literals found: %s", int_dict)

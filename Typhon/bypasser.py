@@ -1402,15 +1402,15 @@ class BashBypassGenerator:
         """
         return payload.replace(" ", "$IFS$9")
 
-    # the below are modified from program bashfuck
-    # https://github.com/ProbiusOfficial/bashFuck
-    # Copyright @ ProbiusOfficial, 2025
-
     def black_to_ifs_blanket(self, payload: str) -> str:
         """
         'cat /flag' -> 'cat${IFS}/flag'
         """
         return payload.replace(" ", "${IFS}")
+
+    # the below are modified from program bashfuck
+    # https://github.com/ProbiusOfficial/bashFuck
+    # Copyright @ ProbiusOfficial, 2025
 
     def get_oct(
         self, c
@@ -1479,7 +1479,7 @@ class BashBypassGenerator:
 
         return bashFuck
 
-    def interactive(self, cmd):
+    def interactive(self):
         from .Typhon import interactive_
 
         if interactive_:
@@ -1489,7 +1489,7 @@ class BashBypassGenerator:
 
     def Generate(self, cmd):
         yield cmd
-        # yield self.interactive(cmd)
+        yield self.interactive()
         yield self.nomal_otc(cmd)
         yield self.blank_to_ifs_index(cmd)
         yield self.black_to_ifs_blanket(cmd)
