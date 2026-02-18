@@ -149,13 +149,16 @@ def bypassMAIN(
         "_aix_support",
         "_osx_support",
     ]
+    
     if interactive:
         useful_modules.extend(
             [
                 'code',
+                'doctest',
                 'pdb'
             ]
         )
+    
     log_level_ = log_level.upper()
     if log_level_ not in ["DEBUG", "INFO", "QUIET"]:
         logger.warning("[!] Invalid log level, using INFO instead.")
@@ -467,6 +470,7 @@ Try to bypass blacklist with them. Please be paitent.",
     obj_list.sort(key=len)
 
     string_ords = [ord(i) for i in remove_duplicate(ascii_letters + digits + endpoint)]
+    get_simple_path()
 
     def check_all_collected():
         all_colleted = True
@@ -820,7 +824,6 @@ Try to bypass blacklist with them. Please be paitent.",
     ):
         logger.info("[*] try to RCE directly with builtins.")
         try_to_restore("builtins2RCEinput", end_of_prog=True)
-    # get_simple_path() todo
 
     return generated_path
 

