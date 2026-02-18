@@ -26,26 +26,6 @@ def _parse_banned_ast(values: List[str]) -> List[type]:
         ast_nodes.append(node)
     return ast_nodes
 
-
-def _resolve_scope_tokens(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {str(k): _resolve_scope_tokens(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_resolve_scope_tokens(v) for v in value]
-    if isinstance(value, str):
-        if value.startswith("@builtin:"):
-            name = value.split(":", 1)[1].strip()
-            if not hasattr(builtins, name):
-                raise ValueError(f"Unknown builtins object: {name}")
-            return getattr(builtins, name)
-        if value.startswith("@module:"):
-            module_name = value.split(":", 1)[1].strip()
-            if not module_name:
-                raise ValueError("Empty module name in @module token.")
-            return importlib.import_module(module_name)
-    return value
-
-
 def _json_safe(value: Any) -> Any:
     try:
         json.dumps(value)
@@ -53,6 +33,13 @@ def _json_safe(value: Any) -> Any:
     except TypeError:
         return repr(value)
 
+def _resolve_scope_tokens(scope: Dict[str, Any]):
+    try:
+        if not scope:
+            return {}
+        return eval(scope)
+    except Exception as e:
+        raise ValueError(f"Invalid when parsing local_scope: {e}")
 
 def _run_typhon(payload: Dict[str, Any]) -> Dict[str, Any]:
     mode = payload.get("mode", "rce")

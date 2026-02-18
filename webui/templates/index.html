@@ -82,16 +82,16 @@
             </p>
             <div class="grid advanced-grid">
               <label class="field">
-                <span class="field-label" data-i18n="label_banned_chr">banned_chr (comma/newline split)</span>
-                <textarea id="banned_chr" rows="4" placeholder="import,__builtins__,{}"></textarea>
+                <span class="field-label" data-i18n="label_banned_chr">banned_chr (comma/newline split or python list)</span>
+                <textarea id="banned_chr" rows="4" placeholder="['import', '__builtins__', '{}']"></textarea>
                 <small class="hint" data-i18n="hint_banned_chr">
                   Blacklisted chars/strings. Split by comma or newline.
                 </small>
               </label>
 
               <label class="field">
-                <span class="field-label" data-i18n="label_allowed_chr">allowed_chr (comma/newline split)</span>
-                <textarea id="allowed_chr" rows="4" placeholder=""></textarea>
+                <span class="field-label" data-i18n="label_allowed_chr">allowed_chr (comma/newline split or python list)</span>
+                <textarea id="allowed_chr" rows="4" placeholder="['a', 'b', 'c']"></textarea>
                 <small class="hint" data-i18n="hint_allowed_chr">
                   Whitelist mode. Do not set together with `banned_chr`.
                 </small>

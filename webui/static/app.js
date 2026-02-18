@@ -21,7 +21,7 @@ const translations = {
   zh: {
     page_title: "Typhon 控制台",
     eyebrow: "Typhon 控制台",
-    hero_title: "Webui",
+    hero_title: "Web UI",
     hero_subtitle: "填写参数后运行 Typhon，在同一页面查看生成 payload 和执行输出。",
 
     mode_rce: "RCE 模式",
@@ -37,9 +37,9 @@ const translations = {
 
     basic_filter_title: "WAF / 过滤规则",
     basic_filter_desc: "黑白名单是常规参数，直接放在主配置区域。",
-    label_banned_chr: "banned_chr（逗号/换行分隔）",
+    label_banned_chr: "banned_chr（逗号/换行分隔 或 python 列表）",
     hint_banned_chr: "目标禁止的字符或字符串列表。",
-    label_allowed_chr: "allowed_chr（逗号/换行分隔）",
+    label_allowed_chr: "allowed_chr（逗号/换行分隔 或 python 列表）",
     hint_allowed_chr: "白名单模式。不要和 `banned_chr` 同时设置。",
     label_banned_re: "banned_re（逗号/换行分隔）",
     hint_banned_re: "目标 WAF 禁止匹配的正则规则。",
@@ -102,7 +102,7 @@ const translations = {
   en: {
     page_title: "Typhon Visual Console",
     eyebrow: "Typhon Visual Console",
-    hero_title: "Web UI for pyjail bypass workflows",
+    hero_title: "Web UI",
     hero_subtitle: "Fill options, run Typhon, and inspect generated payload output in one place.",
 
     mode_rce: "RCE Mode",
@@ -423,7 +423,6 @@ resetBtn.addEventListener("click", () => {
   switchMode("rce");
   document.getElementById("depth").value = "5";
   document.getElementById("recursion_limit").value = "200";
-  document.getElementById("timeout_sec").value = "90";
   document.getElementById("log_level").value = "INFO";
   document.getElementById("interactive").checked = true;
   document.getElementById("is_allow_exception_leak").checked = true;

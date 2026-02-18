@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 import os
-import subprocess
 import sys
+import json
 import time
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -28,12 +28,9 @@ def _to_bool(value: Any, default: bool = False) -> bool:
         return value.strip().lower() in {"1", "true", "yes", "on"}
     return default
 
-
 def _to_int(value: Any, default: int | None = None) -> int | None:
     if value is None:
         return default
-    if isinstance(value, int):
-        return value
     if isinstance(value, str) and value.strip() == "":
         return default
     try:
@@ -45,9 +42,9 @@ def _to_int(value: Any, default: int | None = None) -> int | None:
 def _parse_list(value: Any) -> List[str]:
     if value is None:
         return []
-    if isinstance(value, list):
-        return [str(item).strip() for item in value if str(item).strip()]
-    if isinstance(value, str):
+    try:
+        return [str(item).strip() for item in eval(list) if str(item).strip()]
+    except:
         normalized = value.replace("\r\n", "\n").replace("\r", "\n")
         items: List[str] = []
         for line in normalized.split("\n"):
@@ -57,24 +54,6 @@ def _parse_list(value: Any) -> List[str]:
                     items.append(cleaned)
         return items
     return [str(value).strip()] if str(value).strip() else []
-
-
-def _parse_scope(value: Any) -> Dict[str, Any] | None:
-    if value is None:
-        return None
-    if isinstance(value, dict):
-        return value
-    if isinstance(value, str):
-        if value.strip() == "":
-            return None
-        try:
-            loaded = json.loads(value)
-        except json.JSONDecodeError as exc:
-            raise ValueError(f"local_scope must be valid JSON: {exc}") from exc
-        if not isinstance(loaded, dict):
-            raise ValueError("local_scope must be a JSON object.")
-        return loaded
-    raise ValueError("local_scope must be a JSON object or empty.")
 
 
 def _validate_and_build_payload(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -93,11 +72,6 @@ def _validate_and_build_payload(data: Dict[str, Any]) -> Dict[str, Any]:
         if rce_method not in {"exec", "eval"}:
             raise ValueError("rce_method must be 'exec' or 'eval'.")
 
-    timeout_sec = _to_int(data.get("timeout_sec"), 90)
-    if timeout_sec is None:
-        timeout_sec = 90
-    timeout_sec = max(5, min(timeout_sec, 600))
-
     payload = {
         "mode": mode,
         "cmd": cmd,
@@ -107,7 +81,7 @@ def _validate_and_build_payload(data: Dict[str, Any]) -> Dict[str, Any]:
             data.get("is_allow_exception_leak"), default=True
         ),
         "options": {
-            "local_scope": _parse_scope(data.get("local_scope")),
+            "local_scope": data.get("local_scope"),
             "banned_chr": _parse_list(data.get("banned_chr")),
             "allowed_chr": _parse_list(data.get("allowed_chr")),
             "banned_ast": _parse_list(data.get("banned_ast")),
@@ -125,7 +99,6 @@ def _validate_and_build_payload(data: Dict[str, Any]) -> Dict[str, Any]:
             "log_level": str(data.get("log_level", "INFO")).strip().upper()
             or "INFO",
         },
-        "timeout_sec": timeout_sec,
     }
 
     if payload["options"]["depth"] is None:
@@ -156,7 +129,6 @@ def run_typhon():
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
 
-    timeout_sec = payload.pop("timeout_sec", 90)
     start = time.perf_counter()
     try:
         proc = subprocess.run(
@@ -165,15 +137,15 @@ def run_typhon():
             capture_output=True,
             text=True,
             cwd=str(PROJECT_ROOT),
-            timeout=timeout_sec,
         )
-    except subprocess.TimeoutExpired:
+    except:
         elapsed_ms = int((time.perf_counter() - start) * 1000)
+        import traceback
         return (
             jsonify(
                 {
                     "ok": False,
-                    "error": f"Execution timed out after {timeout_sec} seconds.",
+                    "error": f"Failed to run runner: \r\n{traceback.format_exc()}",
                     "duration_ms": elapsed_ms,
                 }
             ),
@@ -224,6 +196,6 @@ def run_typhon():
 
 if __name__ == "__main__":
     host = os.getenv("TYPHON_WEBUI_HOST", "127.0.0.1")
-    port = int(os.getenv("TYPHON_WEBUI_PORT", "5000"))
+    port = int(os.getenv("TYPHON_WEBUI_PORT", "6240"))
     debug = os.getenv("TYPHON_WEBUI_DEBUG", "0") == "1"
     app.run(host=host, port=port, debug=debug)
