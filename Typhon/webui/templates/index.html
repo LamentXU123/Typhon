@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typhon WebUI</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #111111;
+      --panel:   #181818;
+      --border:  #282828;
+      --border2: #333333;
+      --text:    #cccccc;
+      --dim:     #555555;
+      --mono:    "JetBrains Mono", "Consolas", monospace;
+
+      --c-error:   #f87171;
+      --c-warn:    #fbbf24;
+      --c-success: #4ade80;
+      --c-info:    #60a5fa;
+      --c-debug:   #444444;
+    }
+
+    html { zoom: 1.5; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      height: calc(100vh / 1.5);
+      overflow: hidden;
+      display: flex;
+    }
+
+    aside {
+      width: 320px;
+      min-width: 320px;
+      height: 100%;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .s-head {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .s-logo { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+    .s-ver  { font-size: 11px; color: var(--dim); }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 9px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      color: var(--dim);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: #fff; border-bottom-color: #fff; }
+
+    .panel-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    .panel { display: none; padding: 18px 20px 8px; }
+    .panel.active { display: block; }
+
+    .field { margin-bottom: 14px; }
+    .field > label {
+      display: block;
+      font-size: 10px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .field input[type="text"],
+    .field input[type="number"],
+    .field select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 9px;
+      font-family: var(--mono);
+      font-size: 12px;
+      border-radius: 3px;
+      transition: border-color 0.15s;
+      appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--border2);
+    }
+    .field input::placeholder { color: var(--dim); opacity: 1; }
+
+    .field .inp-top {
+      border-radius: 3px 3px 0 0;
+      border-bottom: none;
+    }
+    .field .inp-bot {
+      border-radius: 0 0 3px 3px;
+    }
+
+    .field-row { display: flex; gap: 8px; }
+    .field-row .field { flex: 1; }
+
+    .checks { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chk {
+      display: flex; align-items: center; gap: 7px;
+      cursor: pointer; user-select: none;
+      color: var(--dim); font-size: 12px;
+      transition: color 0.15s;
+    }
+    .chk:hover { color: var(--text); }
+    .chk input { display: none; }
+    .chk-box {
+      width: 13px; height: 13px;
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .chk input:checked ~ .chk-box {
+      background: #fff;
+      border-color: #fff;
+    }
+    .chk input:checked ~ .chk-box::after {
+      content: "";
+      display: block;
+      width: 7px; height: 7px;
+      background: #111;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .adv-toggle {
+      font-size: 10px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0 12px;
+    }
+    .adv-toggle::before, .adv-toggle::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .adv-toggle:hover { color: var(--text); }
+
+    .adv-body { display: none; }
+    .adv-body.open { display: block; }
+
+    .run-btn {
+      width: 100%;
+      padding: 9px;
+      background: #e5e5e5;
+      color: #111;
+      border: none;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 3px;
+      margin: 18px 0 20px;
+      transition: background 0.15s;
+    }
+    .run-btn:hover { background: #fff; }
+
+    .s-foot {
+      padding: 10px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 10px;
+      color: var(--dim);
+      flex-shrink: 0;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-image: linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.82)), url('/static/typhon.png');
+      background-size: cover;
+      background-position: center 25%;
+    }
+
+    .t-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--dim);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+    .t-status { display: flex; align-items: center; gap: 7px; }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--dim);
+      transition: background 0.2s;
+    }
+    .dot.running { background: var(--c-info); }
+    .dot.found   { background: var(--c-success); }
+    .dot.error   { background: var(--c-error); }
+    .dot.warn    { background: var(--c-warn); }
+
+    .t-actions { display: flex; gap: 14px; }
+    .t-actions button {
+      background: none; border: none;
+      color: var(--dim); font-family: var(--mono); font-size: 11px;
+      cursor: pointer; padding: 0;
+      transition: color 0.15s;
+    }
+    .t-actions button:hover { color: var(--text); }
+
+    .prog-wrap {
+      height: 1px;
+      background: var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: none;
+    }
+    .prog-wrap.active { display: block; }
+    .prog-fill {
+      height: 100%;
+      background: var(--c-info);
+      animation: prog 1.8s infinite ease-in-out;
+    }
+    @keyframes prog {
+      0%   { width: 0;   margin-left: 0; }
+      50%  { width: 40%; margin-left: 30%; }
+      100% { width: 0;   margin-left: 100%; }
+    }
+
+    #terminal-out {
+      flex: 1;
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-y: auto;
+      color: #999;
+      min-height: 0;
+    }
+
+    .result-box {
+      display: none;
+      flex-direction: column;
+      flex-shrink: 0;
+      max-height: 160px;
+      border-top: 1px solid var(--border);
+    }
+    .result-box.visible { display: flex; }
+
+    .r-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 14px;
+      font-size: 11px;
+      color: var(--c-success);
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .r-bar button {
+      background: none; border: none;
+      color: var(--dim); font-family: var(--mono); font-size: 11px;
+      cursor: pointer; padding: 0;
+      transition: color 0.15s;
+    }
+    .r-bar button:hover { color: var(--text); }
+
+    #result-content {
+      padding: 10px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-y: auto;
+      color: var(--c-success);
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); }
+  </style>
+</head>
+<body>
+
+<aside>
+  <div class="s-head">
+    <span class="s-logo">TYPHON</span>
+    <span class="s-ver" id="versionBadge">v—</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('rce', this)">Bypass RCE</button>
+    <button class="tab-btn" onclick="switchTab('read', this)">Bypass READ</button>
+  </div>
+
+  <div class="panel-wrap">
+
+    <div id="panel-rce" class="panel active">
+
+      <div class="field">
+        <label>Command</label>
+        <input type="text" id="rce-cmd" placeholder="cat /flag"
+          title="Shell command to execute inside the pyjail" />
+      </div>
+
+      <div class="field">
+        <label>Blacklist</label>
+        <input type="text" class="inp-top" id="rce-banned-chr" placeholder="Banned substrings, e.g. import, __"
+          title="Comma-separated substrings banned by the sandbox" />
+        <input type="text" class="inp-bot" id="rce-banned-re" placeholder="Banned regex, e.g. .*import.*"
+          title="Comma-separated Python regex patterns that are banned" />
+      </div>
+
+      <div class="field">
+        <label>Local Scope (JSON)</label>
+        <input type="text" id="rce-local-scope" placeholder='{"x": 1, "__builtins__": {}}'
+          title='Sandbox local variables as a JSON object. Leave empty for default global scope.' />
+      </div>
+
+      <div class="checks">
+        <label class="chk" title="Enable if sandbox accepts interactive stdin">
+          <input type="checkbox" id="rce-interactive" checked>
+          <div class="chk-box"></div>Interactive
+        </label>
+        <label class="chk" title="Try Unicode lookalike characters to bypass filters">
+          <input type="checkbox" id="rce-unicode">
+          <div class="chk-box"></div>Unicode
+        </label>
+      </div>
+
+      <div class="adv-toggle" onclick="toggleAdv('rce')">Advanced</div>
+      <div id="adv-rce" class="adv-body">
+        <div class="field">
+          <label>Whitelist (allowed chars)</label>
+          <input type="text" id="rce-allowed-chr" placeholder="Leave empty = no restriction"
+            title="Comma-separated allowed characters; all others become banned" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Max Length</label>
+            <input type="number" id="rce-max-length" placeholder="Unlimited"
+              title="Maximum payload byte length" />
+          </div>
+          <div class="field">
+            <label>Depth</label>
+            <input type="number" id="rce-depth" value="5" min="1" max="20"
+              title="Bypass combination depth (1-20)" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Recursion Limit</label>
+            <input type="number" id="rce-recursion" value="200"
+              title="Max recursion depth for bypass engine" />
+          </div>
+          <div class="field">
+            <label>Log Level</label>
+            <select id="rce-log-level" title="Output verbosity">
+              <option value="INFO">INFO</option>
+              <option value="DEBUG">DEBUG</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Banned AST Nodes</label>
+          <input type="text" id="rce-banned-ast" placeholder="Import, Call, Attribute"
+            title="Comma-separated AST node type names to ban" />
+        </div>
+        <div class="checks">
+          <label class="chk" title="Print all candidate payloads to log">
+            <input type="checkbox" id="rce-print-all">
+            <div class="chk-box"></div>Print All Payloads
+          </label>
+        </div>
+      </div>
+
+      <button class="run-btn" onclick="runTask('rce')">RUN</button>
+    </div>
+
+    <div id="panel-read" class="panel">
+
+      <div class="field">
+        <label>Target File</label>
+        <input type="text" id="read-filepath" placeholder="/etc/passwd"
+          title="Absolute path of the file to read inside the sandbox" />
+      </div>
+
+      <div class="field">
+        <label>Method</label>
+        <select id="read-method"
+          title="exec: sandbox uses exec(), eval: sandbox uses eval()">
+          <option value="exec">exec</option>
+          <option value="eval">eval</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Blacklist</label>
+        <input type="text" class="inp-top" id="read-banned-chr" placeholder="Banned substrings, e.g. open, __"
+          title="Comma-separated substrings banned by the sandbox" />
+        <input type="text" class="inp-bot" id="read-banned-re" placeholder="Banned regex, e.g. .*open.*"
+          title="Comma-separated Python regex patterns that are banned" />
+      </div>
+
+      <div class="checks">
+        <label class="chk" title="Enable if sandbox accepts interactive stdin">
+          <input type="checkbox" id="read-interactive" checked>
+          <div class="chk-box"></div>Interactive
+        </label>
+        <label class="chk" title="Allow Typhon to leak file content via exception messages">
+          <input type="checkbox" id="read-leak" checked>
+          <div class="chk-box"></div>Exception Leak
+        </label>
+      </div>
+
+      <div class="adv-toggle" onclick="toggleAdv('read')">Advanced</div>
+      <div id="adv-read" class="adv-body">
+        <div class="field">
+          <label>Whitelist (allowed chars)</label>
+          <input type="text" id="read-allowed-chr" placeholder="Leave empty = no restriction"
+            title="Comma-separated allowed characters; all others become banned" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Max Length</label>
+            <input type="number" id="read-max-length" placeholder="Unlimited"
+              title="Maximum payload byte length" />
+          </div>
+          <div class="field">
+            <label>Depth</label>
+            <input type="number" id="read-depth" value="5" min="1" max="20"
+              title="Bypass combination depth (1-20)" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Recursion Limit</label>
+            <input type="number" id="read-recursion" value="200"
+              title="Max recursion depth for bypass engine" />
+          </div>
+          <div class="field">
+            <label>Log Level</label>
+            <select id="read-log-level" title="Output verbosity">
+              <option value="INFO">INFO</option>
+              <option value="DEBUG">DEBUG</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Banned AST Nodes</label>
+          <input type="text" id="read-banned-ast" placeholder="Import, Call, Attribute"
+            title="Comma-separated AST node type names to ban" />
+        </div>
+        <div class="checks">
+          <label class="chk" title="Print all candidate payloads to log">
+            <input type="checkbox" id="read-print-all">
+            <div class="chk-box"></div>Print All Payloads
+          </label>
+        </div>
+      </div>
+
+      <button class="run-btn" onclick="runTask('read')">RUN</button>
+    </div>
+
+  </div>
+
+  <div class="s-foot" id="s-foot">ready</div>
+</aside>
+
+<main>
+  <div class="t-bar">
+    <div class="t-status">
+      <div class="dot" id="status-dot"></div>
+      <span id="status-text">idle</span>
+    </div>
+    <div class="t-actions">
+      <button onclick="copyLog()">copy log</button>
+    </div>
+  </div>
+
+  <div class="prog-wrap" id="progress-track">
+    <div class="prog-fill"></div>
+  </div>
+
+  <div id="terminal-out">
+    <span style="color:var(--dim)">waiting for input...</span>
+  </div>
+
+  <div class="result-box" id="result-box">
+    <div class="r-bar">
+      <span>payload</span>
+      <button onclick="copyPayload()">copy</button>
+    </div>
+    <div id="result-content"></div>
+  </div>
+</main>
+
+<script>
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+function toggleAdv(id) {
+  document.getElementById(`adv-${id}`).classList.toggle('open');
+}
+
+function copyLog() {
+  navigator.clipboard.writeText(document.getElementById('terminal-out').innerText);
+}
+
+function copyPayload() {
+  navigator.clipboard.writeText(document.getElementById('result-content').innerText);
+}
+
+let _controller = null;
+let _in_payload = false;
+
+function log(msg, type) {
+  if (!type) {
+    if (msg.startsWith('ERROR') || msg.startsWith('CRITICAL')) type = 'error';
+    else if (msg.startsWith('WARNING')) type = 'warn';
+    else if (msg.startsWith('DEBUG')) type = 'debug';
+    else if (msg.includes('Jail broken')) type = 'success';
+  }
+
+  const term = document.getElementById('terminal-out');
+  const div = document.createElement('div');
+  div.textContent = msg;
+
+  if      (type === 'error')   div.style.color = 'var(--c-error)';
+  else if (type === 'success') { div.style.color = 'var(--c-success)'; div.style.fontWeight = '700'; }
+  else if (type === 'warn')    div.style.color = 'var(--c-warn)';
+  else if (type === 'debug')   div.style.color = 'var(--c-debug)';
+
+  term.appendChild(div);
+  term.scrollTop = term.scrollHeight;
+
+  if (msg.includes('Jail broken')) {
+    if (!_in_payload) {
+      _in_payload = true;
+      document.getElementById('result-content').textContent = '';
+      document.getElementById('result-box').classList.add('visible');
+    } else {
+      _in_payload = false;
+    }
+    return;
+  }
+  if (_in_payload) {
+    const rc = document.getElementById('result-content');
+    rc.textContent += (rc.textContent ? '\n' : '') + msg;
+  }
+}
+
+function updateProgress(msg) {
+  const term = document.getElementById('terminal-out');
+  const last = term.lastElementChild;
+  if (last && last.classList.contains('prog-line')) {
+    last.textContent = msg;
+  } else {
+    const div = document.createElement('div');
+    div.textContent = msg;
+    div.className = 'prog-line';
+    div.style.color = '#666';
+    term.appendChild(div);
+  }
+  term.scrollTop = term.scrollHeight;
+}
+
+function setStatus(state) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  const prog = document.getElementById('progress-track');
+  const foot = document.getElementById('s-foot');
+
+  dot.className = 'dot';
+  prog.classList.remove('active');
+
+  if (state === 'running') {
+    dot.classList.add('running');
+    txt.textContent = 'running';
+    prog.classList.add('active');
+    foot.textContent = 'executing...';
+  } else if (state === 'found') {
+    dot.classList.add('found');
+    txt.textContent = 'payload found';
+    foot.textContent = 'done';
+  } else if (state === 'error') {
+    dot.classList.add('error');
+    txt.textContent = 'error';
+    foot.textContent = 'failed';
+  } else if (state === 'notfound') {
+    dot.classList.add('warn');
+    txt.textContent = 'no payload';
+    foot.textContent = 'done';
+  } else {
+    txt.textContent = 'idle';
+    foot.textContent = 'ready';
+  }
+}
+
+async function runTask(type) {
+  if (_controller) _controller.abort();
+  _controller = new AbortController();
+  _in_payload = false;
+
+  const term = document.getElementById('terminal-out');
+  term.innerHTML = '';
+  document.getElementById('result-box').classList.remove('visible');
+  document.getElementById('result-content').textContent = '';
+  setStatus('running');
+
+  const payload = buildPayload(type);
+  if (!payload) { setStatus('idle'); return; }
+
+  try {
+    const res = await fetch(`/api/bypass/${type}/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: _controller.signal
+    });
+
+    if (!res.ok) throw new Error(res.statusText);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.type === 'log')      log(data.text);
+          if (data.type === 'progress') updateProgress(data.text);
+          if (data.type === 'done') {
+            if (data.success)      { log('>>> payload found', 'success'); setStatus('found'); }
+            else if (data.error)   { log('>>> error: ' + data.error, 'error'); setStatus('error'); }
+            else                   { log('>>> no payload found', 'warn'); setStatus('notfound'); }
+          }
+        } catch(e) {}
+      }
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') { log('network error: ' + e.message, 'error'); setStatus('error'); }
+  }
+}
+
+function buildPayload(type) {
+  if (type === 'rce') {
+    const cmd = document.getElementById('rce-cmd').value.trim();
+    if (!cmd) { log('error: command is required', 'error'); return null; }
+    return {
+      cmd,
+      banned_chr:        parseList(document.getElementById('rce-banned-chr').value),
+      banned_re:         parseList(document.getElementById('rce-banned-re').value),
+      allowed_chr:       parseList(document.getElementById('rce-allowed-chr').value),
+      max_length:        parseInt(document.getElementById('rce-max-length').value) || null,
+      depth:             parseInt(document.getElementById('rce-depth').value) || 5,
+      recursion_limit:   parseInt(document.getElementById('rce-recursion').value) || 200,
+      log_level:         document.getElementById('rce-log-level').value,
+      interactive:       document.getElementById('rce-interactive').checked,
+      allow_unicode_bypass: document.getElementById('rce-unicode').checked,
+      banned_ast:        parseList(document.getElementById('rce-banned-ast').value),
+      local_scope:       parseLocalScope(document.getElementById('rce-local-scope').value),
+      print_all_payload: document.getElementById('rce-print-all').checked,
+    };
+  } else {
+    const filepath = document.getElementById('read-filepath').value.trim();
+    if (!filepath) { log('error: filepath is required', 'error'); return null; }
+    return {
+      filepath,
+      RCE_method:           document.getElementById('read-method').value,
+      banned_chr:           parseList(document.getElementById('read-banned-chr').value),
+      banned_re:            parseList(document.getElementById('read-banned-re').value),
+      allowed_chr:          parseList(document.getElementById('read-allowed-chr').value),
+      max_length:           parseInt(document.getElementById('read-max-length').value) || null,
+      depth:                parseInt(document.getElementById('read-depth').value) || 5,
+      recursion_limit:      parseInt(document.getElementById('read-recursion').value) || 200,
+      log_level:            document.getElementById('read-log-level').value,
+      interactive:          document.getElementById('read-interactive').checked,
+      is_allow_exception_leak: document.getElementById('read-leak').checked,
+      banned_ast:           parseList(document.getElementById('read-banned-ast').value),
+      print_all_payload:    document.getElementById('read-print-all').checked,
+    };
+  }
+}
+
+function parseList(s) {
+  if (!s || !s.trim()) return [];
+  const t = s.trim();
+  if (t.startsWith('[')) {
+    try {
+      const p = JSON.parse(t);
+      if (Array.isArray(p)) return p.map(x => String(x)).filter(Boolean);
+    } catch(e) {}
+    try {
+      const p = JSON.parse(t.replace(/'/g, '"'));
+      if (Array.isArray(p)) return p.map(x => String(x)).filter(Boolean);
+    } catch(e) {}
+  }
+  return t.split(',').map(x => x.trim()).filter(Boolean);
+}
+
+function parseLocalScope(s) {
+  if (!s || !s.trim()) return null;
+  try {
+    const obj = JSON.parse(s.trim());
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) return obj;
+  } catch(e) {
+    log('warning: local_scope is not valid JSON, ignored', 'warn');
+  }
+  return null;
+}
+
+fetch('/api/version').then(r => r.json()).then(d => {
+  document.getElementById('versionBadge').textContent = `v${d.typhon_version}`;
+});
+</script>
+</body>
+</html>
