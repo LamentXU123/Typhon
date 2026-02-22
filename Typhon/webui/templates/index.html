@@ -56,6 +56,8 @@
     }
     .s-logo { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 1px; }
     .s-ver  { font-size: 11px; color: var(--dim); }
+    .s-doc  { font-size: 11px; color: var(--c-info); transition: color 0.15s; }
+    .s-doc:hover { color: #93c5fd; text-decoration: underline double;}
 
     .tabs {
       display: flex;
@@ -322,6 +324,7 @@
   <div class="s-head">
     <span class="s-logo">TYPHON</span>
     <span class="s-ver" id="versionBadge">v—</span>
+    <a class="s-doc" href="https://typhon.lamentxu.top" target="_blank" title="Typhon Documentation">docs</a>
   </div>
 
   <div class="tabs">
@@ -343,16 +346,12 @@
         <label>Blacklist</label>
         <input type="text" class="inp-top" id="rce-banned-chr" placeholder="Banned substrings, e.g. import, __"
           title="Comma-separated substrings banned by the sandbox" />
-        <input type="text" class="inp-bot" id="rce-banned-re" placeholder="Banned regex, e.g. .*import.*"
-          title="Comma-separated Python regex patterns that are banned" />
       </div>
-
       <div class="field">
         <label>Local Scope (JSON)</label>
         <input type="text" id="rce-local-scope" placeholder='{"x": 1, "__builtins__": {}}'
           title='Sandbox local variables as a JSON object. Leave empty for default global scope.' />
       </div>
-
       <div class="checks">
         <label class="chk" title="Enable if sandbox accepts interactive stdin">
           <input type="checkbox" id="rce-interactive" checked>
@@ -371,7 +370,12 @@
           <input type="text" id="rce-allowed-chr" placeholder="Leave empty = no restriction"
             title="Comma-separated allowed characters; all others become banned" />
         </div>
-        <div class="field-row">
+        <div class="field">
+          <label>Banned Regex</label>
+        <input type="text" class="inp-bot" id="rce-banned-re" placeholder="Banned regex, e.g. .*import.*"
+          title="Comma-separated Python regex patterns that are banned" />
+        </div>
+          <div class="field-row">
           <div class="field">
             <label>Max Length</label>
             <input type="number" id="rce-max-length" placeholder="Unlimited"
@@ -434,10 +438,12 @@
         <label>Blacklist</label>
         <input type="text" class="inp-top" id="read-banned-chr" placeholder="Banned substrings, e.g. open, __"
           title="Comma-separated substrings banned by the sandbox" />
-        <input type="text" class="inp-bot" id="read-banned-re" placeholder="Banned regex, e.g. .*open.*"
-          title="Comma-separated Python regex patterns that are banned" />
       </div>
-
+      <div class="field">
+        <label>Local Scope (JSON)</label>
+        <input type="text" id="read-local-scope" placeholder='{"x": 1, "__builtins__": {}}'
+          title='Sandbox local variables as a JSON object. Leave empty for default global scope.' />
+      </div>
       <div class="checks">
         <label class="chk" title="Enable if sandbox accepts interactive stdin">
           <input type="checkbox" id="read-interactive" checked>
@@ -446,6 +452,10 @@
         <label class="chk" title="Allow Typhon to leak file content via exception messages">
           <input type="checkbox" id="read-leak" checked>
           <div class="chk-box"></div>Exception Leak
+        </label>
+        <label class="chk" title="Try Unicode lookalike characters to bypass filters">
+          <input type="checkbox" id="read-unicode">
+          <div class="chk-box"></div>Unicode
         </label>
       </div>
 
@@ -456,6 +466,10 @@
           <input type="text" id="read-allowed-chr" placeholder="Leave empty = no restriction"
             title="Comma-separated allowed characters; all others become banned" />
         </div>
+      <div class="field">
+        <label>Banned Regex</label>
+        <input type="text" class="inp-bot" id="read-banned-re" placeholder="Banned regex, e.g. .*open.*"
+        title="Comma-separated Python regex patterns that are banned" /></div>
         <div class="field-row">
           <div class="field">
             <label>Max Length</label>
@@ -540,8 +554,17 @@ function switchTab(tab, btn) {
 }
 
 function toggleAdv(id) {
-  document.getElementById(`adv-${id}`).classList.toggle('open');
+  const advBody = document.getElementById(`adv-${id}`);
+  advBody.classList.toggle('open');
+  // Also toggle the corresponding .adv-toggle element
+  const prev = advBody.previousElementSibling;
+  if (prev && prev.classList.contains('adv-toggle')) {
+    prev.classList.toggle('open');
+  }
 }
+
+toggleAdv('rce')
+toggleAdv('read')
 
 function copyLog() {
   navigator.clipboard.writeText(document.getElementById('terminal-out').innerText);
@@ -708,8 +731,8 @@ function buildPayload(type) {
       interactive:       document.getElementById('rce-interactive').checked,
       allow_unicode_bypass: document.getElementById('rce-unicode').checked,
       banned_ast:        parseList(document.getElementById('rce-banned-ast').value),
-      local_scope:       parseLocalScope(document.getElementById('rce-local-scope').value),
       print_all_payload: document.getElementById('rce-print-all').checked,
+      local_scope:       document.getElementById('rce-local-scope').value,
     };
   } else {
     const filepath = document.getElementById('read-filepath').value.trim();
@@ -726,8 +749,10 @@ function buildPayload(type) {
       log_level:            document.getElementById('read-log-level').value,
       interactive:          document.getElementById('read-interactive').checked,
       is_allow_exception_leak: document.getElementById('read-leak').checked,
+      allow_unicode_bypass: document.getElementById('read-unicode').checked,
       banned_ast:           parseList(document.getElementById('read-banned-ast').value),
       print_all_payload:    document.getElementById('read-print-all').checked,
+      local_scope:       document.getElementById('read-local-scope').value,
     };
   }
 }
@@ -746,17 +771,6 @@ function parseList(s) {
     } catch(e) {}
   }
   return t.split(',').map(x => x.trim()).filter(Boolean);
-}
-
-function parseLocalScope(s) {
-  if (!s || !s.trim()) return null;
-  try {
-    const obj = JSON.parse(s.trim());
-    if (obj && typeof obj === 'object' && !Array.isArray(obj)) return obj;
-  } catch(e) {
-    log('warning: local_scope is not valid JSON, ignored', 'warn');
-  }
-  return null;
 }
 
 fetch('/api/version').then(r => r.json()).then(d => {

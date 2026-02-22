@@ -82,9 +82,14 @@ def _parse_list(value, name: str):
         try:
             p = json.loads(value)
             if isinstance(p, list):
+                for x in p:
+                    if not isinstance(x, str):
+                        raise ValueError(f"Invalid {name}: Not a list of strings")
                 return p
         except json.JSONDecodeError:
             pass
+        if "," not in value:
+            return p
         return [s.strip() for s in value.split(",") if s.strip()]
     raise ValueError(f"'{name}' must be a list or comma-separated string")
 
@@ -95,8 +100,12 @@ def _common_params(data: dict) -> dict:
         max_length = int(max_length)
 
     local_scope = data.get("local_scope")
-    if not isinstance(local_scope, dict) or not local_scope:
-        local_scope = None
+    try: 
+        local_scope = eval(local_scope)
+    except Exception as e:
+        raise ValueError(f"Invalid 'local_scope': {e}")
+    if not isinstance(local_scope, dict):
+        raise ValueError(f"Invalid 'local_scope': Not a dict")
 
     return dict(
         local_scope=local_scope,
@@ -225,6 +234,6 @@ def api_bypass_read_stream():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  Typhon WebUI  —  http://127.0.0.1:5000")
+    print("  Typhon WebUI  —  http://127.0.0.1:6240")
     print("=" * 50)
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=6240, debug=False, threaded=True)
