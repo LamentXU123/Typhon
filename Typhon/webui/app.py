@@ -9,13 +9,10 @@ from pathlib import Path
 
 from flask import Flask, request, jsonify, render_template
 
-# Ensure the Typhon package directory is on sys.path regardless of CWD
 _pkg_dir = str(Path(__file__).parent.parent)
 if _pkg_dir not in sys.path:
     sys.path.insert(0, _pkg_dir)
 
-# Import at module level so Typhon.py's frame-walking code runs here,
-# while cli.py's __main__ frame is still on the call stack.
 from Typhon.Typhon import bypassRCE, bypassREAD
 
 app = Flask(__name__)
