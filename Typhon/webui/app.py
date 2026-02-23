@@ -5,6 +5,7 @@ import logging
 import traceback
 import queue
 import threading
+import ctypes
 
 from flask import Flask, request, jsonify, render_template
 
@@ -13,6 +14,7 @@ from ..Typhon import bypassRCE, bypassREAD
 app = Flask(__name__)
 
 _lock = threading.Lock()
+_worker_thread: threading.Thread = None
 
 _ANSI_RE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
@@ -100,12 +102,15 @@ def _common_params(data: dict) -> dict:
         max_length = int(max_length)
 
     local_scope = data.get("local_scope")
-    try: 
-        local_scope = eval(local_scope)
-    except Exception as e:
-        raise ValueError(f"Invalid 'local_scope': {e}")
-    if not isinstance(local_scope, dict):
-        raise ValueError(f"Invalid 'local_scope': Not a dict")
+    if local_scope is None or (isinstance(local_scope, str) and not local_scope.strip()):
+        local_scope = None
+    else:
+        try:
+            local_scope = eval(local_scope)
+        except Exception as e:
+            raise ValueError(f"Invalid 'local_scope': {e}")
+        if not isinstance(local_scope, dict):
+            raise ValueError(f"Invalid 'local_scope': Not a dict")
 
     return dict(
         local_scope=local_scope,
@@ -157,7 +162,9 @@ def _stream_response(func_name: str, func_kwargs: dict):
                 typhon_log.removeHandler(log_handler)
                 done.set()
 
-    threading.Thread(target=worker, daemon=True).start()
+    global _worker_thread
+    _worker_thread = threading.Thread(target=worker, daemon=True)
+    _worker_thread.start()
 
     def generate():
         while not done.is_set() or not q.empty():
@@ -198,6 +205,19 @@ def api_version():
     from ..Typhon import VERSION
     import platform
     return jsonify(typhon_version=VERSION, python_version=platform.python_version())
+
+
+@app.route("/api/cancel", methods=["POST"])
+def api_cancel():
+    global _worker_thread
+    t = _worker_thread
+    if t is None or not t.is_alive():
+        return jsonify(ok=False, reason="no running task")
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+        ctypes.c_ulong(t.ident),
+        ctypes.py_object(SystemExit)
+    )
+    return jsonify(ok=(res == 1))
 
 
 @app.route("/api/bypass/rce/stream", methods=["POST"])
