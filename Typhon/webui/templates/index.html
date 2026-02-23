@@ -173,6 +173,16 @@
       background: var(--border);
     }
     .adv-toggle:hover { color: var(--text); }
+    
+    .arrow {
+      display: inline-block;
+      font-size: 11px;
+      margin-left: 8px;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0.9;
+      color: var(--c-info);
+    }
+    .adv-toggle.open .arrow { transform: rotate(90deg); }
 
     .adv-body { display: none; }
     .adv-body.open { display: block; }
@@ -363,7 +373,7 @@
         </label>
       </div>
 
-      <div class="adv-toggle" onclick="toggleAdv('rce')">Advanced</div>
+      <div class="adv-toggle" onclick="toggleAdv('rce')" title="Click to expand advanced settings">Advanced <span class="arrow">▶</span></div>
       <div id="adv-rce" class="adv-body">
         <div class="field">
           <label>Whitelist (allowed chars)</label>
@@ -459,7 +469,7 @@
         </label>
       </div>
 
-      <div class="adv-toggle" onclick="toggleAdv('read')">Advanced</div>
+      <div class="adv-toggle" onclick="toggleAdv('read')" title="Click to expand advanced settings">Advanced <span class="arrow">▶</span></div>
       <div id="adv-read" class="adv-body">
         <div class="field">
           <label>Whitelist (allowed chars)</label>
@@ -524,6 +534,7 @@
       <span id="status-text">idle</span>
     </div>
     <div class="t-actions">
+      <button id="cancel-btn" onclick="cancelTask()" style="display:none; color:var(--c-error)">cancel</button>
       <button onclick="copyLog()">copy log</button>
     </div>
   </div>
@@ -556,15 +567,11 @@ function switchTab(tab, btn) {
 function toggleAdv(id) {
   const advBody = document.getElementById(`adv-${id}`);
   advBody.classList.toggle('open');
-  // Also toggle the corresponding .adv-toggle element
   const prev = advBody.previousElementSibling;
   if (prev && prev.classList.contains('adv-toggle')) {
     prev.classList.toggle('open');
   }
 }
-
-toggleAdv('rce')
-toggleAdv('read')
 
 function copyLog() {
   navigator.clipboard.writeText(document.getElementById('terminal-out').innerText);
@@ -583,6 +590,7 @@ function log(msg, type) {
     else if (msg.startsWith('WARNING')) type = 'warn';
     else if (msg.startsWith('DEBUG')) type = 'debug';
     else if (msg.includes('Jail broken')) type = 'success';
+    else if (msg.startsWith('Reminder:')) type = 'warn';
   }
 
   const term = document.getElementById('terminal-out');
@@ -594,9 +602,6 @@ function log(msg, type) {
   else if (type === 'warn')    div.style.color = 'var(--c-warn)';
   else if (type === 'debug')   div.style.color = 'var(--c-debug)';
 
-  term.appendChild(div);
-  term.scrollTop = term.scrollHeight;
-
   if (msg.includes('Jail broken')) {
     if (!_in_payload) {
       _in_payload = true;
@@ -607,7 +612,13 @@ function log(msg, type) {
     }
     return;
   }
+
+  term.appendChild(div);
+  term.scrollTop = term.scrollHeight;
+
   if (_in_payload) {
+    if (msg.startsWith('Reminder:')) return;
+    div.style.color = 'var(--c-success)';
     const rc = document.getElementById('result-content');
     rc.textContent += (rc.textContent ? '\n' : '') + msg;
   }
@@ -633,15 +644,18 @@ function setStatus(state) {
   const txt = document.getElementById('status-text');
   const prog = document.getElementById('progress-track');
   const foot = document.getElementById('s-foot');
+  const cancelBtn = document.getElementById('cancel-btn');
 
   dot.className = 'dot';
   prog.classList.remove('active');
+  cancelBtn.style.display = 'none';
 
   if (state === 'running') {
     dot.classList.add('running');
     txt.textContent = 'running';
     prog.classList.add('active');
     foot.textContent = 'executing...';
+    cancelBtn.style.display = '';
   } else if (state === 'found') {
     dot.classList.add('found');
     txt.textContent = 'payload found';
@@ -658,6 +672,13 @@ function setStatus(state) {
     txt.textContent = 'idle';
     foot.textContent = 'ready';
   }
+}
+
+async function cancelTask() {
+  if (_controller) _controller.abort();
+  await fetch('/api/cancel', { method: 'POST' });
+  setStatus('idle');
+  log('>>> cancelled', 'warn');
 }
 
 async function runTask(type) {
