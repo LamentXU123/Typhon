@@ -16,4 +16,4 @@ USER appuser
 
 EXPOSE 6240
 
-CMD ["python", "-m", "Typhon.cli", "webui"]
+CMD ["python", "Typhon/cli.py", "webui"]
