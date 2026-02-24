@@ -519,7 +519,7 @@ def try_bypasses(
     return successful_payloads
 
 
-def progress_bar(current, total, bar_length=80):
+def progress_bar(current, total, bar_length=60):
     """
     Progress bar function
 
