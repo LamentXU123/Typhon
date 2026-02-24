@@ -1,5 +1,6 @@
 import sys
 import re
+import ast
 import json
 import logging
 import traceback
@@ -95,6 +96,17 @@ def _parse_list(value, name: str):
         return [s.strip() for s in value.split(",") if s.strip()]
     raise ValueError(f"'{name}' must be a list or comma-separated string")
 
+def _parse_ast(name):
+    output = []
+    for i in name:
+        if i[:4] == 'ast.':
+            i = i[4:]
+        try:
+            ast_i = eval(f'ast.{i}')
+        except:
+            raise ValueError(f"Invalid {name}: Unknown ast node '{i}'")
+        output.append(ast_i)
+    return output
 
 def _common_params(data: dict) -> dict:
     max_length = data.get("max_length")
@@ -103,7 +115,7 @@ def _common_params(data: dict) -> dict:
 
     local_scope = data.get("local_scope")
     if local_scope is None or (isinstance(local_scope, str) and not local_scope.strip()):
-        local_scope = None
+        local_scope = {}
     else:
         try:
             local_scope = eval(local_scope)
@@ -116,8 +128,8 @@ def _common_params(data: dict) -> dict:
         local_scope=local_scope,
         banned_chr=_parse_list(data.get("banned_chr"), "banned_chr"),
         allowed_chr=_parse_list(data.get("allowed_chr"), "allowed_chr"),
-        banned_ast=_parse_list(data.get("banned_ast"), "banned_ast"),
-        banned_re=_parse_list(data.get("banned_re"), "banned_re"),
+        banned_ast=_parse_ast(list(_parse_list(data.get("banned_ast"), "banned_ast"))),
+        banned_re=list(_parse_list(data.get("banned_re"), "banned_re")),
         max_length=max_length,
         depth=int(data.get("depth", 5)),
         recursion_limit=int(data.get("recursion_limit", 200)),

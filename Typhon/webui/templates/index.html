@@ -20,6 +20,7 @@
       --c-success: #4ade80;
       --c-info:    #60a5fa;
       --c-debug:   #444444;
+      --c-bar:   #0b006a;
     }
 
     html { zoom: 1.5; }
@@ -180,7 +181,6 @@
       margin-left: 8px;
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       opacity: 0.9;
-      color: var(--c-info);
     }
     .adv-toggle.open .arrow { transform: rotate(90deg); }
 
@@ -391,25 +391,6 @@
             <input type="number" id="rce-max-length" placeholder="Unlimited"
               title="Maximum payload byte length" />
           </div>
-          <div class="field">
-            <label>Depth</label>
-            <input type="number" id="rce-depth" value="5" min="1" max="20"
-              title="Bypass combination depth (1-20)" />
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Recursion Limit</label>
-            <input type="number" id="rce-recursion" value="200"
-              title="Max recursion depth for bypass engine" />
-          </div>
-          <div class="field">
-            <label>Log Level</label>
-            <select id="rce-log-level" title="Output verbosity">
-              <option value="INFO">INFO</option>
-              <option value="DEBUG">DEBUG</option>
-            </select>
-          </div>
         </div>
         <div class="field">
           <label>Banned AST Nodes</label>
@@ -421,6 +402,29 @@
             <input type="checkbox" id="rce-print-all">
             <div class="chk-box"></div>Print All Payloads
           </label>
+        </div>
+      </div>
+
+      <div class="adv-toggle" onclick="toggleAdv('rce-dev')" title="Click to expand developer settings">Developer <span class="arrow">▶</span></div>
+      <div id="adv-rce-dev" class="adv-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Depth</label>
+            <input type="number" id="rce-depth" value="5" min="1" max="20"
+              title="Bypass combination depth (1-20)" />
+          </div>
+          <div class="field">
+            <label>Recursion Limit</label>
+            <input type="number" id="rce-recursion" value="200"
+              title="Max recursion depth for bypass engine" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Log Level</label>
+          <select id="rce-log-level" title="Output verbosity">
+            <option value="INFO">INFO</option>
+            <option value="DEBUG">DEBUG</option>
+          </select>
         </div>
       </div>
 
@@ -486,25 +490,6 @@
             <input type="number" id="read-max-length" placeholder="Unlimited"
               title="Maximum payload byte length" />
           </div>
-          <div class="field">
-            <label>Depth</label>
-            <input type="number" id="read-depth" value="5" min="1" max="20"
-              title="Bypass combination depth (1-20)" />
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Recursion Limit</label>
-            <input type="number" id="read-recursion" value="200"
-              title="Max recursion depth for bypass engine" />
-          </div>
-          <div class="field">
-            <label>Log Level</label>
-            <select id="read-log-level" title="Output verbosity">
-              <option value="INFO">INFO</option>
-              <option value="DEBUG">DEBUG</option>
-            </select>
-          </div>
         </div>
         <div class="field">
           <label>Banned AST Nodes</label>
@@ -516,6 +501,29 @@
             <input type="checkbox" id="read-print-all">
             <div class="chk-box"></div>Print All Payloads
           </label>
+        </div>
+      </div>
+
+      <div class="adv-toggle" onclick="toggleAdv('read-dev')" title="Click to expand developer settings">Developer <span class="arrow">▶</span></div>
+      <div id="adv-read-dev" class="adv-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Depth</label>
+            <input type="number" id="read-depth" value="5" min="1" max="20"
+              title="Bypass combination depth (1-20)" />
+          </div>
+          <div class="field">
+            <label>Recursion Limit</label>
+            <input type="number" id="read-recursion" value="200"
+              title="Max recursion depth for bypass engine" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Log Level</label>
+          <select id="read-log-level" title="Output verbosity">
+            <option value="INFO">INFO</option>
+            <option value="DEBUG">DEBUG</option>
+          </select>
         </div>
       </div>
 
@@ -591,6 +599,7 @@ function log(msg, type) {
     else if (msg.startsWith('DEBUG')) type = 'debug';
     else if (msg.includes('Jail broken')) type = 'success';
     else if (msg.startsWith('Reminder:')) type = 'warn';
+    else if (msg.startsWith('Bypassing')) type = 'bar';
   }
 
   const term = document.getElementById('terminal-out');
@@ -601,6 +610,8 @@ function log(msg, type) {
   else if (type === 'success') { div.style.color = 'var(--c-success)'; div.style.fontWeight = '700'; }
   else if (type === 'warn')    div.style.color = 'var(--c-warn)';
   else if (type === 'debug')   div.style.color = 'var(--c-debug)';
+  else if (type === 'info')   div.style.color = 'var(--c-bar)';
+  else                          div.style.color = 'var(--c-info)'; // 我知道这里错了，但是别动，一动颜色就真错了 XD
 
   if (msg.includes('Jail broken')) {
     if (!_in_payload) {
