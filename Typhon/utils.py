@@ -476,6 +476,7 @@ def try_bypasses(
     local_scope,
     cmd=None,
     bash_cmd=None,
+    stop_after_first: bool = False,
 ) -> list:
     """
     Try to bypass each payload in the pathlist
@@ -510,6 +511,10 @@ def try_bypasses(
                     successful_payloads_with_reminder.append(_)
                 else:
                     successful_payloads.append(_)
+                if stop_after_first:
+                    if pathlist:
+                        sys.stdout.write("\n")
+                    return [_]
     if pathlist:
         sys.stdout.write("\n")
     successful_payloads.sort(key=len)
