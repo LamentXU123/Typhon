@@ -34,7 +34,7 @@
 - 不需要大脑就能完成pyjail题目，爱护您的脑细胞和眼球
 - 拥有数百条gadgets和几乎所有主流的bypass方法
 - 支持多种函数以达成不同功能，如RCE用`bypassRCE()`, 读文件用`bypassRead()`等等
-- 核心 bypass 逻辑不依赖第三方库（CLI/WebUI 会用到 `click` / `flask`）
+- 不依赖第三方库（包含 CLI/WebUI，均为标准库实现）
 
 ## How to Use
 
@@ -46,11 +46,7 @@
 pip install TyphonBreaker
 ```
 
-如果你要使用命令行（`typhonbreaker`）或 WebUI（`typhonbreaker webui`），请确保同时安装：
-
-```
-pip install click flask
-```
+命令行（`typhonbreaker`）与 WebUI（`typhonbreaker webui`）无需额外依赖（均为标准库实现）。
 
 ### WebUI
 
