@@ -42,7 +42,7 @@ from .utils import *
 # The RCE data including RCE functions and their parameters.
 from .RCE_data import *
 
-VERSION = "1.0.12.2"
+VERSION = "1.0.12.5"
 BANNER = (
     r"""
     .-')          _                 Typhon: a pyjail bypassing tool
@@ -100,6 +100,8 @@ def bypassMAIN(
     import_test, load_module_test, modules_test = False, False, False
     if isinstance(banned_re, str):
         banned_re = [banned_re]  # convert to list if it's a string
+    if not isinstance(banned_ast, list):
+        banned_ast = [banned_ast]  # convert to list if it's a string
     if isinstance(banned_chr, str):
         banned_chr = [i for i in banned_chr]
         logger.warning(
