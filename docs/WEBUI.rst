@@ -1,5 +1,5 @@
-WebUI
-=====
+WEBUI 网页界面
+=================
 
 ``Typhon`` 内置一个轻量的 WebUI（仅使用 Python 标准库），用于在浏览器中调用 :func:`~Typhon.bypassRCE` / :func:`~Typhon.bypassREAD`。
 
