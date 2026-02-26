@@ -21,22 +21,19 @@ search_depth = 5  # changeable in bypassMAIN()
 logging.basicConfig(level=log_level_, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-# get current global scope (best-effort)
-current_global_scope = None
 current_frame = currentframe()
-while current_frame is not None:
-    try:
-        if current_frame.f_globals.get("__name__") == "__main__":
-            current_global_scope = current_frame.f_globals
-            break
-    except Exception:
-        pass
-    current_frame = current_frame.f_back
-
-if current_global_scope is None:
-    main_module = sys.modules.get("__main__")
-    current_global_scope = getattr(main_module, "__dict__", globals())
-
+try:
+    while current_frame.f_globals["__name__"] != "__main__":
+        current_frame = current_frame.f_back
+except KeyError:
+    # This is for readthedocs build. See https://github.com/LamentXU123/Typhon/pull/1/
+    # You would not use this in a real environment.
+    current_global_scope = (
+        currentframe().f_back.f_back.f_back.f_back.f_back.f_back.f_globals
+    )
+finally:
+    current_global_scope = current_frame.f_globals
+    
 from .utils import *
 
 # The RCE data including RCE functions and their parameters.
@@ -488,18 +485,13 @@ Try to bypass blacklist with them. Please be paitent.",
         return all_colleted
 
     for i in string_ords:
-        c = chr(i)
-        if c in string_dict:
-            continue
-        if not is_blacklisted(f"'{c}'", ast_check_enabled=False) and c != "'":
-            string_dict[c] = f"'{c}'"
-            continue
-        if not is_blacklisted(f'"{c}"', ast_check_enabled=False) and c != '"':
-            string_dict[c] = f'"{c}"'
-            continue
-        chr_payload = f"chr({i})"
-        if not is_blacklisted(chr_payload, ast_check_enabled=False):
-            string_dict[c] = chr_payload
+        if not is_blacklisted(f"'{chr(i)}'", ast_check_enabled=False) and chr(i) != "'":
+            string_dict[chr(i)] = f"'{chr(i)}'"
+        elif (
+            not is_blacklisted(f'"{chr(i)}"', ast_check_enabled=False) and chr(i) != '"'
+        ):
+            string_dict[chr(i)] = f'"{chr(i)}"'
+            
     obj_list.sort(key=len)
     if not check_all_collected():
         logger.info("[*] Try to get string literals from docstrings.")
