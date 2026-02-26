@@ -10,6 +10,7 @@
 subclasses = object.__subclasses__()[:-1]  # delete ast.AST
 
 import logging
+import sys
 
 from inspect import currentframe
 from typing import Any, Dict, Union
@@ -33,13 +34,13 @@ except KeyError:
     )
 finally:
     current_global_scope = current_frame.f_globals
-
+    
 from .utils import *
 
 # The RCE data including RCE functions and their parameters.
 from .RCE_data import *
 
-VERSION = "1.0.12.2"
+VERSION = "1.0.12.6"
 BANNER = (
     r"""
     .-')          _                 Typhon: a pyjail bypassing tool
@@ -97,6 +98,8 @@ def bypassMAIN(
     import_test, load_module_test, modules_test = False, False, False
     if isinstance(banned_re, str):
         banned_re = [banned_re]  # convert to list if it's a string
+    if not isinstance(banned_ast, list):
+        banned_ast = [banned_ast]  # convert to list if it's a string
     if isinstance(banned_chr, str):
         banned_chr = [i for i in banned_chr]
         logger.warning(
@@ -247,6 +250,7 @@ Try to bypass blacklist with them. Please be paitent.",
                 tagged_scope,
                 cmd,
                 bash_cmd,
+                stop_after_first=(end_of_prog and not print_all_payload),
             )
             if _:
                 success = False
@@ -415,6 +419,7 @@ Try to bypass blacklist with them. Please be paitent.",
                 max_length,
                 allow_unicode_bypass,
                 tagged_scope,
+                stop_after_first=(not print_all_payload),
             )
             if _:
                 logger.info(
@@ -487,6 +492,7 @@ Try to bypass blacklist with them. Please be paitent.",
             not is_blacklisted(f'"{chr(i)}"', ast_check_enabled=False) and chr(i) != '"'
         ):
             string_dict[chr(i)] = f'"{chr(i)}"'
+            
     obj_list.sort(key=len)
     if not check_all_collected():
         logger.info("[*] Try to get string literals from docstrings.")

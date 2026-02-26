@@ -445,10 +445,10 @@ def is_blacklisted(payload, ast_check_enabled=True) -> bool:
                 if any(isinstance(node, bAST) for node in ast_nodes):
                     ast_banned = True
                     break
-        except (SyntaxError, TypeError):
+        except (SyntaxError, TypeError) as e:
             from .Typhon import logger
 
-            logger.debug("Syntax error in payload when testing for AST: " + payload)
+            logger.debug("Syntax error in payload when testing for AST: " + payload + ' ' + str(e))
             ast_banned = True
     if banned_re_:
         for b_re in banned_re_:
@@ -476,6 +476,7 @@ def try_bypasses(
     local_scope,
     cmd=None,
     bash_cmd=None,
+    stop_after_first: bool = False,
 ) -> list:
     """
     Try to bypass each payload in the pathlist
@@ -510,6 +511,10 @@ def try_bypasses(
                     successful_payloads_with_reminder.append(_)
                 else:
                     successful_payloads.append(_)
+                if stop_after_first:
+                    if pathlist:
+                        sys.stdout.write("\n")
+                    return [_]
     if pathlist:
         sys.stdout.write("\n")
     successful_payloads.sort(key=len)

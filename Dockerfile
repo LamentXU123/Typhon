@@ -7,8 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir click flask \
-    && useradd -m -u 10001 appuser
+RUN useradd -m -u 10001 appuser
 
 COPY Typhon/ Typhon/
 
