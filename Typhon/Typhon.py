@@ -10,6 +10,7 @@
 subclasses = object.__subclasses__()[:-1]  # delete ast.AST
 
 import logging
+import sys
 
 from inspect import currentframe
 from typing import Any, Dict, Union
@@ -20,7 +21,6 @@ search_depth = 5  # changeable in bypassMAIN()
 logging.basicConfig(level=log_level_, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-# get current global scope
 current_frame = currentframe()
 try:
     while current_frame.f_globals["__name__"] != "__main__":
@@ -33,7 +33,7 @@ except KeyError:
     )
 finally:
     current_global_scope = current_frame.f_globals
-
+    
 from .utils import *
 
 # The RCE data including RCE functions and their parameters.
@@ -249,6 +249,7 @@ Try to bypass blacklist with them. Please be paitent.",
                 tagged_scope,
                 cmd,
                 bash_cmd,
+                stop_after_first=(end_of_prog and not print_all_payload),
             )
             if _:
                 success = False
@@ -417,6 +418,7 @@ Try to bypass blacklist with them. Please be paitent.",
                 max_length,
                 allow_unicode_bypass,
                 tagged_scope,
+                stop_after_first=(not print_all_payload),
             )
             if _:
                 logger.info(
@@ -489,6 +491,7 @@ Try to bypass blacklist with them. Please be paitent.",
             not is_blacklisted(f'"{chr(i)}"', ast_check_enabled=False) and chr(i) != '"'
         ):
             string_dict[chr(i)] = f'"{chr(i)}"'
+            
     obj_list.sort(key=len)
     if not check_all_collected():
         logger.info("[*] Try to get string literals from docstrings.")
