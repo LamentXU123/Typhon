@@ -34,7 +34,7 @@
 - 不需要大脑就能完成pyjail题目，爱护您的脑细胞和眼球
 - 拥有数百条gadgets和几乎所有主流的bypass方法
 - 支持多种函数以达成不同功能，如RCE用`bypassRCE()`, 读文件用`bypassRead()`等等
-- 不依赖任何第三方库，使用纯python3实现
+- 不依赖第三方库（包含 CLI/WebUI，均为标准库实现）
 
 ## How to Use
 
@@ -44,6 +44,42 @@
 
 ```
 pip install TyphonBreaker
+```
+
+命令行（`typhonbreaker`）与 WebUI（`typhonbreaker webui`）无需额外依赖（均为标准库实现）。
+
+### WebUI
+
+启动 WebUI：
+
+```
+typhonbreaker webui
+```
+
+浏览器打开：`http://127.0.0.1:6240`
+
+> 注：当前 WebUI 会监听 `0.0.0.0:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
+
+### Docker WebUI
+
+本仓库包含用于构建 WebUI 镜像的 `Dockerfile`，并提供 GitHub Actions 自动发布到 GHCR。
+
+1) 拉取并运行：
+
+```
+docker run --rm -p 6240:6240 ghcr.io/lamentxu123/typhonbreaker-webui:latest
+```
+
+2) 或使用 compose：
+
+```
+docker compose up --build
+```
+
+自定义宿主机端口（容器内仍是 6240）：
+
+```
+TYPHONBREAKER_PORT=7000 docker compose up --build
 ```
 
 ### Interface
