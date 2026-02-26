@@ -1,0 +1,8 @@
+services:
+  typhonbreaker-webui:
+    build:
+      context: .
+    image: typhonbreaker-webui:local
+    ports:
+      - "${TYPHONBREAKER_PORT:-6240}:6240"
+    restart: unless-stopped

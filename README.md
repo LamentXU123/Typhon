@@ -350,4 +350,3 @@ Typhon 现已加入 [404星链计划](https://github.com/knownsec/404StarLink)
   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Team-intN18-SoybeanSeclab/Typhon&type=Date" />
   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Team-intN18-SoybeanSeclab/Typhon&type=Date" />
 </picture>
-
