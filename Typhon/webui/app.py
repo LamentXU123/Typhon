@@ -20,7 +20,7 @@ _INDEX_HTML = _ROOT / "templates" / "index.html"
 _STATIC_DIR = _ROOT / "static"
 
 _lock = threading.Lock()
-_worker_thread = None  # type: Optional[threading.Thread]
+_worker_thread = None
 
 _ANSI_RE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
@@ -86,15 +86,19 @@ def _parse_list(value, name: str) -> List[str]:
     if value is None:
         return []
     if isinstance(value, list):
+        if not all(isinstance(x, str) for x in value):
+            raise ValueError(f"Invalid {name}: Not a list of strings")
         return value
     if isinstance(value, str):
-        if value.endswith(",]"):
-            value = value[:-2] + ']'
         value = value.strip()
         if not value:
             return []
+        if value.endswith(",]"):
+            value = value[:-2] + "]"
         try:
             p = json.loads(value)
+            if not isinstance(p, list):
+                raise ValueError(f"Invalid {name}: Not a list of strings")
             for x in p:
                 if not isinstance(x, str):
                     raise ValueError(f"Invalid {name}: Not a list of strings")
