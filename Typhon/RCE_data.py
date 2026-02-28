@@ -282,15 +282,51 @@ RCE_data = {
             "_aix_support",
             "Only works on limited platforms.",
         ],
-        ["ctypes.CDLL(None).system(COMMAND.encode())", "ctypes", "Only works on limited platforms."],
-        ["os.execl(CMD_FILE,UNFOLD_CMD_ARGS)", "os", "Only works on limited platforms."],
-        ["os.execle(CMD_FILE,UNFOLD_CMD_ARGS)", "os", "Only works on limited platforms."],
-        ["os.execlp(CMD_FILE,CMD_FILE,UNFOLD_CMD_ARGS)", "os", "Only works on limited platforms."],
-        ["os.execlpe(CMD_FILE,CMD_FILE,UNFOLD_CMD_ARGS)", "os", "Only works on limited platforms."],
-        ["os.execv(CMD_FILE,[UNFOLD_CMD_ARGS])", "os", "Only works on limited platforms."],
-        ["os.execve(CMD_FILE,[UNFOLD_CMD_ARGS])", "os", "Only works on limited platforms."],
-        ["os.execvp(CMD_FILE,CMD_FILE,[UNFOLD_CMD_ARGS])", "os", "Only works on limited platforms."],
-        ["os.execvpe(CMD_FILE,CMD_FILE,[UNFOLD_CMD_ARGS])", "os", "Only works on limited platforms."],
+        [
+            "ctypes.CDLL(None).system(COMMAND.encode())",
+            "ctypes",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execl(CMD_FILE,UNFOLD_CMD_ARGS)",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execle(CMD_FILE,UNFOLD_CMD_ARGS)",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execlp(CMD_FILE,CMD_FILE,UNFOLD_CMD_ARGS)",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execlpe(CMD_FILE,CMD_FILE,UNFOLD_CMD_ARGS)",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execv(CMD_FILE,[UNFOLD_CMD_ARGS])",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execve(CMD_FILE,[UNFOLD_CMD_ARGS])",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execvp(CMD_FILE,CMD_FILE,[UNFOLD_CMD_ARGS])",
+            "os",
+            "Only works on limited platforms.",
+        ],
+        [
+            "os.execvpe(CMD_FILE,CMD_FILE,[UNFOLD_CMD_ARGS])",
+            "os",
+            "Only works on limited platforms.",
+        ],
     ],
     "exec": [
         ["profile.run", "profile"],
@@ -299,7 +335,11 @@ RCE_data = {
     "filecontentstring": [
         ["linecache.getline(COMMAND,1)", "linecache"],
         ["FILECONTENTSIO.read()", "FILECONTENTSIO"],
-        ["*linecache.getlines(COMMAND)", 'linecache', 'Can not be used directly, must be used in expressions replacing FileIO of the target file. ']
+        [
+            "*linecache.getlines(COMMAND)",
+            "linecache",
+            "Can not be used directly, must be used in expressions replacing FileIO of the target file. ",
+        ],
     ],
     "filecontentsio": [
         ["io.FileIO(COMMAND)", "io"],
@@ -311,26 +351,47 @@ RCE_data = {
     "print_filecontent": [
         ["exit(FILECONTENTSTRING)", "exit,FILECONTENTSTRING"],
         ["BUILTINS_SET['exit'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
-        ["MODULE_BUILTINS.exit(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
+        [
+            "MODULE_BUILTINS.exit(FILECONTENTSTRING)",
+            "MODULE_BUILTINS,FILECONTENTSTRING",
+        ],
         ["print(FILECONTENTSTRING)", "print,FILECONTENTSTRING"],
         ["BUILTINS_SET['print'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
-        ["MODULE_BUILTINS.print(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
+        [
+            "MODULE_BUILTINS.print(FILECONTENTSTRING)",
+            "MODULE_BUILTINS,FILECONTENTSTRING",
+        ],
         ["BUILTINS_SET['help'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
-        ["MODULE_BUILTINS.help(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
+        [
+            "MODULE_BUILTINS.help(FILECONTENTSTRING)",
+            "MODULE_BUILTINS,FILECONTENTSTRING",
+        ],
         ["help(FILECONTENTSTRING)", "help,FILECONTENTSTRING"],
     ],
     "print_filecontent_error": [
         ["raise Exception(FILECONTENTSTRING)", "Exception,FILECONTENTSTRING"],
-        ["raise BUILTINS_SET['Exception'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
-        ["raise MODULE_BUILTINS.Exception(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
+        [
+            "raise BUILTINS_SET['Exception'](FILECONTENTSTRING)",
+            "BUILTINS_SET,FILECONTENTSTRING",
+        ],
+        [
+            "raise MODULE_BUILTINS.Exception(FILECONTENTSTRING)",
+            "MODULE_BUILTINS,FILECONTENTSTRING",
+        ],
         ["BUILTINS_SET['open'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
-        ["MODULE_BUILTINS.open(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
+        [
+            "MODULE_BUILTINS.open(FILECONTENTSTRING)",
+            "MODULE_BUILTINS,FILECONTENTSTRING",
+        ],
         ["open(FILECONTENTSTRING)", "open,FILECONTENTSTRING"],
         ["int(FILECONTENTSTRING)", "int,FILECONTENTSTRING"],
         ["MODULE_BUILTINS.int(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
         ["BUILTINS_SET['int'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
         ["float(FILECONTENTSTRING)", "float,FILECONTENTSTRING"],
-        ["MODULE_BUILTINS.float(FILECONTENTSTRING)", "MODULE_BUILTINS,FILECONTENTSTRING"],
+        [
+            "MODULE_BUILTINS.float(FILECONTENTSTRING)",
+            "MODULE_BUILTINS,FILECONTENTSTRING",
+        ],
         ["BUILTINS_SET['float'](FILECONTENTSTRING)", "BUILTINS_SET,FILECONTENTSTRING"],
     ],
     "bytes": [

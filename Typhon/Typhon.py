@@ -34,13 +34,13 @@ except KeyError:
     )
 finally:
     current_global_scope = current_frame.f_globals
-    
+
 from .utils import *
 
 # The RCE data including RCE functions and their parameters.
 from .RCE_data import *
 
-VERSION = "1.0.13.5"
+VERSION = "1.0.13.6"
 BANNER = (
     r"""
     .-')          _                 Typhon: a pyjail bypassing tool
@@ -152,16 +152,10 @@ def bypassMAIN(
         "_aix_support",
         "_osx_support",
     ]
-    
+
     if interactive:
-        useful_modules.extend(
-            [
-                'code',
-                'doctest',
-                'pdb'
-            ]
-        )
-    
+        useful_modules.extend(["code", "doctest", "pdb"])
+
     log_level_ = log_level.upper()
     if log_level_ not in ["DEBUG", "INFO", "QUIET"]:
         logger.warning("[!] Invalid log level, using INFO instead.")
@@ -492,7 +486,7 @@ Try to bypass blacklist with them. Please be paitent.",
             not is_blacklisted(f'"{chr(i)}"', ast_check_enabled=False) and chr(i) != '"'
         ):
             string_dict[chr(i)] = f'"{chr(i)}"'
-            
+
     obj_list.sort(key=len)
     if not check_all_collected():
         logger.info("[*] Try to get string literals from docstrings.")
@@ -556,15 +550,15 @@ Try to bypass blacklist with them. Please be paitent.",
             continue
         # tyr bool bypass
         if i == 0 and is_blacklisted("False"):
-            if not is_blacklisted('False.real'):
-                int_dict.update({int(i): 'False.real'})
-            if not is_blacklisted('False.imag'):
-                int_dict.update({int(i): 'False.imag'})
-            if not is_blacklisted('+'):
-                int_dict.update({int(i): 'False+False'})
+            if not is_blacklisted("False.real"):
+                int_dict.update({int(i): "False.real"})
+            if not is_blacklisted("False.imag"):
+                int_dict.update({int(i): "False.imag"})
+            if not is_blacklisted("+"):
+                int_dict.update({int(i): "False+False"})
         else:
-            if not is_blacklisted(f"True" + '+True' * (int(i)-1)):
-                int_dict.update({int(i): f"True" + '+True' * int(i-1)})
+            if not is_blacklisted(f"True" + "+True" * (int(i) - 1)):
+                int_dict.update({int(i): f"True" + "+True" * int(i - 1)})
         # TODO: bypassers to get ints
     logger.info("[*] int literals found: %s", int_dict)
 
@@ -991,9 +985,9 @@ def webui(
             )
         finally:
             current_global_scope = current_frame.f_globals
-        current_global_scope.pop('webui')
+        current_global_scope.pop("webui")
         try:
-            current_global_scope.pop('Typhon')
+            current_global_scope.pop("Typhon")
         except KeyError:
             pass
     run(host=host, port=port, injected_scope=scope)

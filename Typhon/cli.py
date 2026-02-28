@@ -7,6 +7,7 @@ _root = str(Path(__file__).parent.parent)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="typhonbreaker")
     sub = parser.add_subparsers(dest="command", required=True)

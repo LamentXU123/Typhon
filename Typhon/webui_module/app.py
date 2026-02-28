@@ -1,4 +1,3 @@
-import ast
 import ctypes
 import json
 import logging
@@ -108,17 +107,19 @@ def _parse_list(value, name: str) -> List[str]:
             raise
     raise ValueError(f"'{name}' must be a list or comma-separated string")
 
+
 def _parse_ast(name):
     output = []
     for i in name:
-        if i[:4] == 'ast.':
+        if i[:4] == "ast.":
             i = i[4:]
         try:
-            ast_i = eval(f'ast.{i}')
+            ast_i = eval(f"ast.{i}")
         except:
             raise ValueError(f"Invalid {name}: Unknown ast node '{i}'")
         output.append(ast_i)
     return output
+
 
 def _common_params(data: Dict) -> Dict:
     max_length = data.get("max_length")
@@ -126,7 +127,9 @@ def _common_params(data: Dict) -> Dict:
         max_length = int(max_length)
 
     local_scope = data.get("local_scope")
-    if local_scope is None or (isinstance(local_scope, str) and not local_scope.strip()):
+    if local_scope is None or (
+        isinstance(local_scope, str) and not local_scope.strip()
+    ):
         if _injected_scope is not None:
             local_scope = _injected_scope
         else:
@@ -155,7 +158,9 @@ def _common_params(data: Dict) -> Dict:
     )
 
 
-def _start_worker(func_name: str, func_kwargs: Dict) -> Tuple[queue.Queue, threading.Event, Dict]:
+def _start_worker(
+    func_name: str, func_kwargs: Dict
+) -> Tuple[queue.Queue, threading.Event, Dict]:
     q: queue.Queue = queue.Queue()
     done = threading.Event()
     result = {"success": False, "error": ""}
@@ -179,7 +184,7 @@ def _start_worker(func_name: str, func_kwargs: Dict) -> Tuple[queue.Queue, threa
                     bypassREAD(**func_kwargs)
 
             except SystemExit as e:
-                result["success"] = (e.code == 0)
+                result["success"] = e.code == 0
                 if e.code != 0:
                     result["error"] = f"Typhon exited with code {e.code}"
 
@@ -202,7 +207,9 @@ class _WebUIHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
-        logging.getLogger("Typhon.webui_module").info("%s - %s", self.address_string(), fmt % args)
+        logging.getLogger("Typhon.webui_module").info(
+            "%s - %s", self.address_string(), fmt % args
+        )
 
     def _send_bytes(self, status: int, body: bytes, content_type: str):
         self.send_response(status)
@@ -264,12 +271,19 @@ class _WebUIHandler(BaseHTTPRequestHandler):
 
             return self._send_json(
                 HTTPStatus.OK,
-                {"typhon_version": VERSION, "python_version": platform.python_version()},
+                {
+                    "typhon_version": VERSION,
+                    "python_version": platform.python_version(),
+                },
             )
         if path == "/api/scope_status":
             if _injected_scope is not None:
                 try:
-                    keys = [k for k in _injected_scope if isinstance(k, str) and not k.startswith("__")]
+                    keys = [
+                        k
+                        for k in _injected_scope
+                        if isinstance(k, str) and not k.startswith("__")
+                    ]
                 except Exception:
                     keys = []
                 return self._send_json(
@@ -286,7 +300,9 @@ class _WebUIHandler(BaseHTTPRequestHandler):
             global _worker_thread
             t = _worker_thread
             if t is None or not t.is_alive():
-                return self._send_json(HTTPStatus.OK, {"ok": False, "reason": "no running task"})
+                return self._send_json(
+                    HTTPStatus.OK, {"ok": False, "reason": "no running task"}
+                )
             res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
                 ctypes.c_ulong(t.ident),
                 ctypes.py_object(SystemExit),
@@ -297,38 +313,53 @@ class _WebUIHandler(BaseHTTPRequestHandler):
             try:
                 data = self._read_json()
             except ValueError as e:
-                return self._send_json(HTTPStatus.BAD_REQUEST, {"success": False, "error": str(e)})
+                return self._send_json(
+                    HTTPStatus.BAD_REQUEST, {"success": False, "error": str(e)}
+                )
 
             func_name = "rce" if path.endswith("/rce/stream") else "read"
 
             if func_name == "rce":
                 cmd = str(data.get("cmd", "")).strip()
                 if not cmd:
-                    return self._send_json(HTTPStatus.BAD_REQUEST, {"success": False, "error": "'cmd' is required"})
+                    return self._send_json(
+                        HTTPStatus.BAD_REQUEST,
+                        {"success": False, "error": "'cmd' is required"},
+                    )
                 try:
                     params = _common_params(data)
                 except (ValueError, TypeError) as e:
-                    return self._send_json(HTTPStatus.BAD_REQUEST, {"success": False, "error": str(e)})
+                    return self._send_json(
+                        HTTPStatus.BAD_REQUEST, {"success": False, "error": str(e)}
+                    )
                 params["cmd"] = cmd
             else:
                 filepath = str(data.get("filepath", "")).strip()
                 if not filepath:
                     return self._send_json(
-                        HTTPStatus.BAD_REQUEST, {"success": False, "error": "'filepath' is required"}
+                        HTTPStatus.BAD_REQUEST,
+                        {"success": False, "error": "'filepath' is required"},
                     )
                 rce_method = str(data.get("RCE_method", "exec")).strip().lower()
                 if rce_method not in ("exec", "eval"):
                     return self._send_json(
                         HTTPStatus.BAD_REQUEST,
-                        {"success": False, "error": "'RCE_method' must be 'exec' or 'eval'"},
+                        {
+                            "success": False,
+                            "error": "'RCE_method' must be 'exec' or 'eval'",
+                        },
                     )
                 try:
                     params = _common_params(data)
                 except (ValueError, TypeError) as e:
-                    return self._send_json(HTTPStatus.BAD_REQUEST, {"success": False, "error": str(e)})
+                    return self._send_json(
+                        HTTPStatus.BAD_REQUEST, {"success": False, "error": str(e)}
+                    )
                 params["filepath"] = filepath
                 params["RCE_method"] = rce_method
-                params["is_allow_exception_leak"] = bool(data.get("is_allow_exception_leak", True))
+                params["is_allow_exception_leak"] = bool(
+                    data.get("is_allow_exception_leak", True)
+                )
 
             q, done, result = _start_worker(func_name, params)
 
@@ -340,7 +371,9 @@ class _WebUIHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             def send_event(item: dict):
-                payload = f"data: {json.dumps(item, ensure_ascii=False)}\n\n".encode("utf-8")
+                payload = f"data: {json.dumps(item, ensure_ascii=False)}\n\n".encode(
+                    "utf-8"
+                )
                 self.wfile.write(payload)
                 self.wfile.flush()
 
@@ -357,7 +390,13 @@ class _WebUIHandler(BaseHTTPRequestHandler):
                     item = q.get_nowait()
                     send_event(item)
 
-                send_event({"type": "done", "success": result["success"], "error": result["error"]})
+                send_event(
+                    {
+                        "type": "done",
+                        "success": result["success"],
+                        "error": result["error"],
+                    }
+                )
             except BrokenPipeError:
                 return
             except ConnectionResetError:
@@ -367,7 +406,9 @@ class _WebUIHandler(BaseHTTPRequestHandler):
         self.send_error(HTTPStatus.NOT_FOUND)
 
 
-def run(host: str = "127.0.0.1", port: int = 6240, injected_scope: Optional[Dict] = None) -> None:
+def run(
+    host: str = "127.0.0.1", port: int = 6240, injected_scope: Optional[Dict] = None
+) -> None:
     global _injected_scope
     _injected_scope = injected_scope
 
