@@ -150,6 +150,8 @@ def safe_run(cmd):
 启动后，WebUI 的 "Local Scope" 字段留空即自动使用注入的变量空间，输入框上方会显示绿色提示横幅。
 若题目 `exec` 使用了受限命名空间（如 `{'__builtins__': {}}`），仍需在 UI 中手动填写。
 
+![image](./image/local_scope_injected_banner.png)
+
 ### Docker WebUI
 
 本仓库包含用于构建 WebUI 镜像的 `Dockerfile`，并提供 GitHub Actions 自动发布到 GHCR。
