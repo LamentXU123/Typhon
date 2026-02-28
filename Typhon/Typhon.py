@@ -991,9 +991,9 @@ def webui(
             )
         finally:
             current_global_scope = current_frame.f_globals
-    current_global_scope.pop('webui')
-    try:
-        current_global_scope.pop('Typhon')
-    except KeyError:
-        pass
+        current_global_scope.pop('webui')
+        try:
+            current_global_scope.pop('Typhon')
+        except KeyError:
+            pass
     run(host=host, port=port, injected_scope=scope)
