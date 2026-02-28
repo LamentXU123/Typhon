@@ -971,7 +971,7 @@ def bypassREAD(
 def webui(
     host: str = "127.0.0.1",
     port: int = 6240,
-    use_current_scope: bool = False,
+    use_current_scope: bool = True,
 ) -> None:
 
     from .webui.app import run

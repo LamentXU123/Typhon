@@ -26,9 +26,9 @@ WEBUI 网页界面
 
    WebUI 默认绑定到 ``127.0.0.1``。如果你运行在服务器上，请自行做好访问控制/防火墙配置。
 
-**方式二：Python API 启动（推荐，可注入当前变量空间）**
+**方式二：Python API 启动（可注入当前变量空间）**
 
-.. py:function:: Typhon.webui(host='127.0.0.1', port=6240, use_current_scope=False)
+.. py:function:: Typhon.webui(host='127.0.0.1', port=6240, use_current_scope=True)
 
    启动 Typhon WebUI 服务器。
 
@@ -48,9 +48,11 @@ WEBUI 网页界面
       这与在题目代码中内联 ``import Typhon`` 的效果等价——当 WebUI 中 "Local Scope"
       字段留空时，将自动使用此注入的变量空间，无需手动输入。
 
+      此参数默认为 ``True``。
+
 命令行方式无法获取当前 Python 进程的变量空间（因为没有 ``import Typhon`` 的过程）。
 通过 Python API 调用 ``Typhon.webui(use_current_scope=True)``，可以在原始脚本内部
-捕获当前 ``__main__`` 的全局变量，随后在 WebUI 中直接使用，省去手动填写 local_scope 的步骤。
+捕获当前 ``__main__`` 的全局变量，随后在 WebUI 中直接使用，这样就可以引入命名空间内题目自定义的变量。
 
 **使用示例**：
 
@@ -77,13 +79,10 @@ WEBUI 网页界面
    若题目的 ``exec`` 设置了受限命名空间（如 ``exec(cmd, {'__builtins__': {}})``），
    仍需在 WebUI 的 "Local Scope" 字段手动填写该受限字典——此时手动填写会覆盖注入的空间。
 
-WebUI scope 注入状态提示
-------------------------
+   当通过 ``Typhon.webui(use_current_scope=True)`` 启动 WebUI 时，页面顶部的
+   "Local Scope" 输入框上方会显示一条绿色横幅，提示已注入调用方的变量空间，以及该空间中的公开变量名。此时留空 "Local Scope" 字段即可使用注入的空间。
 
-当通过 ``Typhon.webui(use_current_scope=True)`` 启动 WebUI 时，页面顶部的
-"Local Scope" 输入框上方会显示一条绿色横幅，提示已注入调用方的变量空间，以及
-该空间中的公开变量名。此时留空 "Local Scope" 字段即可使用注入的空间。
-
+   
 Docker
 ------
 

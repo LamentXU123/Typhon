@@ -50,6 +50,8 @@ pip install TyphonBreaker
 
 ### WebUI
 
+![image](./image/web_ui_example.gif)
+
 **方式一：命令行启动**
 
 ```
@@ -58,13 +60,13 @@ typhonbreaker webui
 
 浏览器打开：`http://127.0.0.1:6240`
 
-> 注：当前 WebUI 会监听 `0.0.0.0:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
+> 注：当前 WebUI 会监听 `127.0.0.1:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
 
 **方式二：Python API 启动（可注入当前变量空间）**
 
 在题目脚本中直接调用 `Typhon.webui(use_current_scope=True)` 来启动 WebUI，
 并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于在函数内
-内联 `import Typhon`，但可通过浏览器 UI 交互操作：
+内联 `import Typhon`，但可通过浏览器 UI 交互操作。这样可以填写命名空间内题目自定义的变量。
 
 ```python
 import re
