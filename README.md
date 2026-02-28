@@ -119,7 +119,7 @@ safe_run(input("Enter command: "))
 
 ### WebUI
 
-![image](./image/web_ui_example.gif)
+![image](./image/web_ui_example.png)
 
 **方式一：命令行启动**
 
