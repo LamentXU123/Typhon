@@ -48,69 +48,7 @@ pip install TyphonBreaker
 
 命令行（`typhonbreaker`）与 WebUI（`typhonbreaker webui`）无需额外依赖（均为标准库实现）。
 
-### WebUI
-
-![image](./image/web_ui_example.gif)
-
-**方式一：命令行启动**
-
-```
-typhonbreaker webui
-```
-
-浏览器打开：`http://127.0.0.1:6240`
-
-> 注：当前 WebUI 会监听 `127.0.0.1:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
-
-**方式二：Python API 启动（可注入当前变量空间）**
-
-在题目脚本中直接调用 `Typhon.webui(use_current_scope=True)` 来启动 WebUI，
-并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于在函数内
-内联 `import Typhon`，但可通过浏览器 UI 交互操作。这样可以填写命名空间内题目自定义的变量。
-
-```python
-import re
-import Typhon
-
-def safe_run(cmd):
-    if re.match(r'.*import.*', cmd):
-        return "WAF!"
-    exec(cmd, {'__builtins__': {}})
-
-# 启动 WebUI，注入当前全局变量空间；在浏览器中填写参数并运行
-Typhon.webui(use_current_scope=True)
-```
-
-启动后，WebUI 的 "Local Scope" 字段留空即自动使用注入的变量空间，输入框上方会显示绿色提示横幅。
-若题目 `exec` 使用了受限命名空间（如 `{'__builtins__': {}}`），仍需在 UI 中手动填写。
-
-### Docker WebUI
-
-本仓库包含用于构建 WebUI 镜像的 `Dockerfile`，并提供 GitHub Actions 自动发布到 GHCR。
-
-1) 拉取并运行：
-
-```
-docker run --rm -p 6240:6240 ghcr.io/lamentxu123/typhonbreaker-webui:latest
-```
-
-2) 或使用 compose：
-
-```
-docker compose up --build
-```
-
-自定义宿主机端口（容器内仍是 6240）：
-
-```
-TYPHONBREAKER_PORT=7000 docker compose up --build
-```
-
-### Interface
-
-提供 `bypass*` 系列接口。主要见 [API 文档](https://typhon.lamentxu.top/zh-cn/latest/USAGE.html)
-
-## Step by Step Tutorial
+### Step by Step Tutorial
 
 你可以通过[示例文档](https://typhon.lamentxu.top/zh-cn/latest/EXAMPLE.html)中的例题来学习 Typhon 的实战用法。以下仅仅提供一个示例。
 
@@ -233,6 +171,61 @@ Pyjail中存在一些通过索引寻找对应object的gadgets（如继承链）�
 - 最后输出的payload没回显怎么办？
 
 对于`bypassRCE`，我们认为：**只要命令得到了执行，就是RCE成功。** 至于回显问题，你可以选择反弹shell，时间盲注，或者：添加`print_all_payload=True`参数，查看所有payload，其中可能含有能够成功回显的payload。
+
+### WebUI
+
+![image](./image/web_ui_example.gif)
+
+**方式一：命令行启动**
+
+```
+typhonbreaker webui
+```
+
+浏览器打开：`http://127.0.0.1:6240`
+
+> 注：当前 WebUI 会监听 `127.0.0.1:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
+
+**方式二：Python API 启动（可注入当前变量空间）**
+
+在题目脚本中直接调用 `Typhon.webui(use_current_scope=True)` 来启动 WebUI，
+并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于在函数内
+内联 `import Typhon` 再 `Typhon.bypassRCE/bypassREAD`，但可通过浏览器 UI 交互操作。这样可以填写命名空间内题目自定义的变量。
+
+```python
+import re
+
+def safe_run(cmd):
+    if re.match(r'.*import.*', cmd):
+        return "WAF!"
+    import Typhon
+    Typhon.webui(use_current_scope=True) # 与 bypassRCE/bypassREAD 相似
+```
+
+启动后，WebUI 的 "Local Scope" 字段留空即自动使用注入的变量空间，输入框上方会显示绿色提示横幅。
+若题目 `exec` 使用了受限命名空间（如 `{'__builtins__': {}}`），仍需在 UI 中手动填写。
+
+### Docker WebUI
+
+本仓库包含用于构建 WebUI 镜像的 `Dockerfile`，并提供 GitHub Actions 自动发布到 GHCR。
+
+1) 拉取并运行：
+
+```
+docker run --rm -p 6240:6240 ghcr.io/lamentxu123/typhonbreaker-webui:latest
+```
+
+2) 或使用 compose：
+
+```
+docker compose up --build
+```
+
+自定义宿主机端口（容器内仍是 6240）：
+
+```
+TYPHONBREAKER_PORT=7000 docker compose up --build
+```
 
 ## Proof of Concept
 
