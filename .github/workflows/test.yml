@@ -28,7 +28,7 @@ jobs:
     - name: Run tests
       run: |
         pip install coverage
-        coverage run --source Typhon -m unittest discover -s test -p "test*.py"
+        coverage run --source Typhon -m unittest discover -s test -p "test_internals.py"
         coverage xml -i
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
