@@ -202,7 +202,7 @@ class _WebUIHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
-        logging.getLogger("Typhon.webui").info("%s - %s", self.address_string(), fmt % args)
+        logging.getLogger("Typhon.webui_module").info("%s - %s", self.address_string(), fmt % args)
 
     def _send_bytes(self, status: int, body: bytes, content_type: str):
         self.send_response(status)

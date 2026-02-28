@@ -974,7 +974,7 @@ def webui(
     use_current_scope: bool = True,
 ) -> None:
 
-    from .webui.app import run
+    from .webui_module.app import run
 
     scope = None
     if use_current_scope:

@@ -21,7 +21,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
 
     if args.command == "webui":
-        from Typhon.webui.app import run
+        from webui_module.app import run
 
         run(host=args.host, port=args.port)
         return 0
