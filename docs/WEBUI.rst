@@ -1,6 +1,8 @@
 WEBUI 网页界面
 =================
 
+.. image:: https://github.com/Team-intN18-SoybeanSeclab/Typhon/blob/main/image/web_ui_example.png?raw=true
+
 ``Typhon`` 内置一个轻量的 WebUI（仅使用 Python 标准库），用于在浏览器中调用 :func:`~Typhon.bypassRCE` / :func:`~Typhon.bypassREAD`。
 
 启动方式
@@ -45,8 +47,10 @@ WEBUI 网页界面
       若为 ``True``，则捕获调用方的 ``__main__`` 全局变量空间，并将其注入 WebUI
       作为默认的 ``local_scope``。
 
-      这与在题目代码中内联 ``import Typhon`` 的效果等价——当 WebUI 中 "Local Scope"
-      字段留空时，将自动使用此注入的变量空间，无需手动输入。
+      这与在题目代码中内联 ``bypassRCE/bypassREAD`` 的效果等价——当 WebUI 中 "Local Scope"
+      字段留空时，将自动使用此注入的变量空间，无需手动输入。这样, 就可以引入命名空间内题目自定义的变量。
+
+      .. image:: https://github.com/Team-intN18-SoybeanSeclab/Typhon/blob/main/image/local_scope_injected_banner.png?raw=true
 
       此参数默认为 ``True``。
 
@@ -59,22 +63,19 @@ WEBUI 网页界面
 .. code-block:: python
 
    import re
-   import Typhon
 
    def safe_run(cmd):
        if re.match(r'.*import.*', cmd):
            return "WAF!"
-       exec(cmd, {'__builtins__': {}})
+       import Typhon
+       Typhon.webui(use_current_scope=True) # 与 bypassRCE/bypassREAD 相似
 
-   # 不再需要在 safe_run 内部 import Typhon 并调用 bypassRCE——
-   # 直接用 webui 启动，注入当前全局空间，在浏览器中操作即可。
-   Typhon.webui(use_current_scope=True)
 
 .. note::
 
    ``use_current_scope=True`` 捕获的是 ``__main__`` 模块的全局变量空间，
    与命令行 ``typhonbreaker webui`` 的 "无 local_scope" 模式等价，但能自动
-   携带当前脚本中已定义的变量（如 ``re``、``safe_run`` 等）。
+   携带当前脚本中已定义的变量（如上例中的 ``re``、``safe_run`` 等）。
 
    若题目的 ``exec`` 设置了受限命名空间（如 ``exec(cmd, {'__builtins__': {}})``），
    仍需在 WebUI 的 "Local Scope" 字段手动填写该受限字典——此时手动填写会覆盖注入的空间。
