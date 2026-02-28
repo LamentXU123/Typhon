@@ -21,9 +21,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
 
     if args.command == "webui":
-        from webui_module.app import run
+        from Typhon import webui
 
-        run(host=args.host, port=args.port)
+        webui(host=args.host, port=args.port, use_current_scope=False)
         return 0
 
     raise SystemExit(f"unknown command: {args.command}")
