@@ -13,7 +13,6 @@ from contextlib import redirect_stdout
 class TestTyphonRCE(unittest.TestCase):
     def tearDown(self):
         print(f"✓ Testcase '{self._testMethodName}' done.")
-
     def test_bypassRCE(self):
         with patch("builtins.quit") as mock_quit:
             mock_quit.side_effect = SystemExit("Test")
@@ -210,3 +209,56 @@ class TestTyphonREAD(unittest.TestCase):
                     )
                 del Typhon
                 mock_exit.assert_called_with(0)
+
+
+class TestWebUI(unittest.TestCase):
+    def test_webui_no_scope_passes_none(self):
+        """webui(use_current_scope=False) must call run() with injected_scope=None."""
+        with redirect_stdout(StringIO()):
+            import Typhon
+            with patch("Typhon.webui.app.run") as mock_run:
+                Typhon.webui(use_current_scope=False)
+                mock_run.assert_called_once()
+                _, kwargs = mock_run.call_args
+                self.assertIsNone(kwargs.get("injected_scope"))
+
+    def test_webui_use_current_scope_passes_dict(self):
+        """webui(use_current_scope=True) must call run() with a dict as injected_scope."""
+        with redirect_stdout(StringIO()):
+            import Typhon
+            with patch("Typhon.webui.app.run") as mock_run:
+                Typhon.webui(use_current_scope=True)
+                mock_run.assert_called_once()
+                _, kwargs = mock_run.call_args
+                self.assertIsInstance(kwargs.get("injected_scope"), dict)
+
+    def test_webui_default_host_and_port(self):
+        """webui() default host/port must be forwarded to run()."""
+        with redirect_stdout(StringIO()):
+            import Typhon
+            with patch("Typhon.webui.app.run") as mock_run:
+                Typhon.webui()
+                _, kwargs = mock_run.call_args
+                self.assertEqual(kwargs.get("host"), "127.0.0.1")
+                self.assertEqual(kwargs.get("port"), 6240)
+
+    def test_webui_custom_host_and_port(self):
+        """webui(host, port) must forward custom values to run()."""
+        with redirect_stdout(StringIO()):
+            import Typhon
+            with patch("Typhon.webui.app.run") as mock_run:
+                Typhon.webui(host="0.0.0.0", port=9999)
+                _, kwargs = mock_run.call_args
+                self.assertEqual(kwargs.get("host"), "0.0.0.0")
+                self.assertEqual(kwargs.get("port"), 9999)
+
+    def test_webui_scope_contains_caller_globals(self):
+        """Injected scope must contain the caller-visible names."""
+        with redirect_stdout(StringIO()):
+            import Typhon
+            with patch("Typhon.webui.app.run") as mock_run:
+                Typhon.webui(use_current_scope=True)
+                _, kwargs = mock_run.call_args
+                scope = kwargs.get("injected_scope")
+                self.assertIsNotNone(scope)
+                self.assertIn("__name__", scope)

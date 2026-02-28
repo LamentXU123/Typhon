@@ -966,3 +966,24 @@ def bypassREAD(
     else:
         try_to_restore("filecontentstring", cmd=filepath, end_of_prog=True)
     return bypasses_output(generated_path=generated_path)
+
+
+def webui(
+    host: str = "127.0.0.1",
+    port: int = 6240,
+    use_current_scope: bool = False,
+) -> None:
+
+    from .webui.app import run
+
+    scope = None
+    if use_current_scope:
+        caller_frame = currentframe().f_back
+        try:
+            while caller_frame.f_globals.get("__name__") != "__main__":
+                caller_frame = caller_frame.f_back
+        except AttributeError:
+            pass
+        scope = caller_frame.f_globals
+
+    run(host=host, port=port, injected_scope=scope)

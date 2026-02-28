@@ -172,3 +172,23 @@ USAGE 用户指南
     
     其余参数与 :py:func:`bypassRCE` 相同。
 
+.. function:: webui(host='127.0.0.1', port=6240, use_current_scope=False)
+
+    启动 Typhon WebUI 服务器（阻塞调用）。
+
+    .. py:attribute:: host
+
+        绑定的主机地址，默认为 ``'127.0.0.1'``。
+
+    .. py:attribute:: port
+
+        监听的端口号，默认为 ``6240``。
+
+    .. py:attribute:: use_current_scope
+
+        若为 ``True``，则捕获调用方的 ``__main__`` 全局变量空间，并将其注入 WebUI
+        作为默认 ``local_scope``。
+
+        当 WebUI 的 "Local Scope" 字段留空时，将自动使用此变量空间，与内联
+        ``import Typhon`` 的效果等价。详见 :doc:`WEBUI`。
+

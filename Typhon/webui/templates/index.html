@@ -326,6 +326,32 @@
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border2); }
+
+    .scope-banner {
+      display: none;
+      font-size: 10px;
+      color: var(--c-success);
+      border: 1px solid var(--c-success);
+      border-radius: 3px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
+    .scope-banner.visible { display: block; }
+
+    .scope-chk {
+      color: var(--c-success);
+      font-size: 10px;
+      margin-top: 6px;
+    }
+    .scope-chk .chk-box {
+      border-color: var(--c-success);
+    }
+    .scope-chk input:checked ~ .chk-box {
+      background: var(--c-success);
+      border-color: var(--c-success);
+    }
   </style>
 </head>
 <body>
@@ -357,10 +383,17 @@
         <input type="text" class="inp-top" id="rce-banned-chr" placeholder="Banned substrings, e.g. import, __"
           title="Comma-separated substrings banned by the sandbox" />
       </div>
-      <div class="field">
+      <div class="scope-banner" id="rce-scope-banner">
+        <span id="rce-scope-banner-text"></span>
+        <label class="chk scope-chk" title="Check to provide a custom local scope instead of the injected caller scope">
+          <input type="checkbox" id="rce-custom-scope-chk" onchange="onScopeChk('rce')">
+          <div class="chk-box"></div>Custom local scope
+        </label>
+      </div>
+      <div class="field" id="rce-scope-field">
         <label>Local Scope (JSON)</label>
         <input type="text" id="rce-local-scope" placeholder='{"x": 1, "__builtins__": {}}'
-          title='Sandbox local variables as a JSON object. Leave empty for default global scope.' />
+          title='Sandbox local variables as a JSON object.' />
       </div>
       <div class="checks">
         <label class="chk" title="Enable if sandbox accepts interactive stdin">
@@ -453,10 +486,17 @@
         <input type="text" class="inp-top" id="read-banned-chr" placeholder="Banned substrings, e.g. open, __"
           title="Comma-separated substrings banned by the sandbox" />
       </div>
-      <div class="field">
+      <div class="scope-banner" id="read-scope-banner">
+        <span id="read-scope-banner-text"></span>
+        <label class="chk scope-chk" title="Check to provide a custom local scope instead of the injected caller scope">
+          <input type="checkbox" id="read-custom-scope-chk" onchange="onScopeChk('read')">
+          <div class="chk-box"></div>Custom local scope
+        </label>
+      </div>
+      <div class="field" id="read-scope-field">
         <label>Local Scope (JSON)</label>
         <input type="text" id="read-local-scope" placeholder='{"x": 1, "__builtins__": {}}'
-          title='Sandbox local variables as a JSON object. Leave empty for default global scope.' />
+          title='Sandbox local variables as a JSON object.' />
       </div>
       <div class="checks">
         <label class="chk" title="Enable if sandbox accepts interactive stdin">
@@ -764,7 +804,7 @@ function buildPayload(type) {
       allow_unicode_bypass: document.getElementById('rce-unicode').checked,
       banned_ast:        parseList(document.getElementById('rce-banned-ast').value),
       print_all_payload: document.getElementById('rce-print-all').checked,
-      local_scope:       document.getElementById('rce-local-scope').value,
+      local_scope:       getScopeValue('rce'),
     };
   } else {
     const filepath = document.getElementById('read-filepath').value.trim();
@@ -784,7 +824,7 @@ function buildPayload(type) {
       allow_unicode_bypass: document.getElementById('read-unicode').checked,
       banned_ast:           parseList(document.getElementById('read-banned-ast').value),
       print_all_payload:    document.getElementById('read-print-all').checked,
-      local_scope:       document.getElementById('read-local-scope').value,
+      local_scope:       getScopeValue('read'),
     };
   }
 }
@@ -808,6 +848,32 @@ function parseList(s) {
 fetch('/api/version').then(r => r.json()).then(d => {
   document.getElementById('versionBadge').textContent = `v${d.typhon_version}`;
 });
+
+function onScopeChk(tab) {
+  const checked = document.getElementById(`${tab}-custom-scope-chk`).checked;
+  document.getElementById(`${tab}-scope-field`).style.display = checked ? '' : 'none';
+}
+
+function getScopeValue(tab) {
+  const chk = document.getElementById(`${tab}-custom-scope-chk`);
+  if (!chk || chk.checked) {
+    return document.getElementById(`${tab}-local-scope`).value;
+  }
+  return '';
+}
+
+fetch('/api/scope_status').then(r => r.json()).then(d => {
+  if (!d.injected) return;
+  const keyPreview = d.keys.length > 0
+    ? `vars: ${d.keys.slice(0, 8).join(', ')}${d.keys.length > 8 ? ', ...' : ''}`
+    : 'no public vars';
+  const msg = `[scope injected] using caller's globals as local_scope\n${keyPreview}`;
+  ['rce', 'read'].forEach(tab => {
+    document.getElementById(`${tab}-scope-banner-text`).textContent = msg;
+    document.getElementById(`${tab}-scope-banner`).classList.add('visible');
+    document.getElementById(`${tab}-scope-field`).style.display = 'none';
+  });
+}).catch(() => {});
 </script>
 </body>
 </html>
