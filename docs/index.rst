@@ -8,7 +8,7 @@ Typhon: 最好的 CTF pyjail 沙箱逃逸自动化解题工具
 
 ``Typhon`` 是一款基于 python3 的开源工具，旨在为 CTF 选手提供方便的 pyjail 自动化解决工具。
 
-你当前所阅读的是 ``Typhon`` 1.0.12 文档。此版本 ``Typhon`` 主要完善了针对文件读取功能的绕过，具体见 :func:`bypassREAD` 文档。
+你当前所阅读的是 ``Typhon`` 1.0.13 文档。此版本 ``Typhon`` 主要完善了网页用户界面（web ui），具体见 :doc:`WEBUI` 文档。
 
 未来， ``Typhon`` 会逐步实现针对 ``AST`` （抽象语法树）， ``audithook`` （审计钩子）黑名单的绕过功能，并提供多行的绕过策略，为CTF选手提供强大的pyjail自动化解题工具。
 
