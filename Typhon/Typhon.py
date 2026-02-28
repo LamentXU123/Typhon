@@ -40,7 +40,7 @@ from .utils import *
 # The RCE data including RCE functions and their parameters.
 from .RCE_data import *
 
-VERSION = "1.0.13.4"
+VERSION = "1.0.13.5"
 BANNER = (
     r"""
     .-')          _                 Typhon: a pyjail bypassing tool
@@ -978,12 +978,22 @@ def webui(
 
     scope = None
     if use_current_scope:
-        caller_frame = currentframe().f_back
+        # get current global scope
+        current_frame = currentframe()
         try:
-            while caller_frame.f_globals.get("__name__") != "__main__":
-                caller_frame = caller_frame.f_back
-        except AttributeError:
-            pass
-        scope = caller_frame.f_globals
-
+            while current_frame.f_globals["__name__"] != "__main__":
+                current_frame = current_frame.f_back
+        except KeyError:
+            # This is for readthedocs build. See https://github.com/LamentXU123/Typhon/pull/1/
+            # You would not use this in a real environment.
+            current_global_scope = (
+                currentframe().f_back.f_back.f_back.f_back.f_back.f_back.f_globals
+            )
+        finally:
+            current_global_scope = current_frame.f_globals
+    current_global_scope.pop('webui')
+    try:
+        current_global_scope.pop('Typhon')
+    except KeyError:
+        pass
     run(host=host, port=port, injected_scope=scope)
