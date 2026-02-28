@@ -21,6 +21,7 @@ _STATIC_DIR = _ROOT / "static"
 
 _lock = threading.Lock()
 _worker_thread = None
+_injected_scope: Optional[Dict] = None
 
 _ANSI_RE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
@@ -126,7 +127,10 @@ def _common_params(data: Dict) -> Dict:
 
     local_scope = data.get("local_scope")
     if local_scope is None or (isinstance(local_scope, str) and not local_scope.strip()):
-        local_scope = {}
+        if _injected_scope is not None:
+            local_scope = _injected_scope
+        else:
+            local_scope = {}
     else:
         try:
             local_scope = eval(local_scope)
@@ -262,6 +266,17 @@ class _WebUIHandler(BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 {"typhon_version": VERSION, "python_version": platform.python_version()},
             )
+        if path == "/api/scope_status":
+            if _injected_scope is not None:
+                try:
+                    keys = [k for k in _injected_scope if isinstance(k, str) and not k.startswith("__")]
+                except Exception:
+                    keys = []
+                return self._send_json(
+                    HTTPStatus.OK,
+                    {"injected": True, "keys": keys},
+                )
+            return self._send_json(HTTPStatus.OK, {"injected": False, "keys": []})
         self.send_error(HTTPStatus.NOT_FOUND)
 
     def do_POST(self):
@@ -352,13 +367,18 @@ class _WebUIHandler(BaseHTTPRequestHandler):
         self.send_error(HTTPStatus.NOT_FOUND)
 
 
-def run(host: str = "127.0.0.1", port: int = 6240) -> None:
+def run(host: str = "127.0.0.1", port: int = 6240, injected_scope: Optional[Dict] = None) -> None:
+    global _injected_scope
+    _injected_scope = injected_scope
+
     logging.basicConfig(level="INFO", format="%(levelname)s %(message)s")
     if not _INDEX_HTML.is_file():
         raise FileNotFoundError(f"Missing WebUI template: {_INDEX_HTML}")
 
     print("=" * 50)
     print(f"  Typhon WebUI  —  http://{host}:{port}")
+    if _injected_scope is not None:
+        print("  [*] Caller scope injected as default local_scope.")
     print("=" * 50)
 
     server = ThreadingHTTPServer((host, port), _WebUIHandler)

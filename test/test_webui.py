@@ -17,6 +17,7 @@ try:
 
     logging.basicConfig(handlers=[logging.NullHandler()], force=True)
 
+    import Typhon.webui.app as _app
     from Typhon.webui.app import (
         _strip_ansi, _parse_list, _parse_ast, _common_params,
         _QueueWriter, _QueueLogHandler, ThreadingHTTPServer, _WebUIHandler,
@@ -260,6 +261,45 @@ class TestCommonParams(unittest.TestCase):
         self.assertTrue(result["print_all_payload"])
         self.assertFalse(result["interactive"])
 
+    def test_injected_scope_used_when_local_scope_empty(self):
+        injected = {"injected_var": 42, "__builtins__": {}}
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = injected
+            result = _common_params({})
+            self.assertIs(result["local_scope"], injected)
+        finally:
+            _app._injected_scope = old
+
+    def test_injected_scope_used_when_local_scope_whitespace(self):
+        injected = {"x": 1}
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = injected
+            result = _common_params({"local_scope": "   "})
+            self.assertIs(result["local_scope"], injected)
+        finally:
+            _app._injected_scope = old
+
+    def test_explicit_local_scope_overrides_injected(self):
+        injected = {"should_not_appear": True}
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = injected
+            result = _common_params({"local_scope": '{"custom": 99}'})
+            self.assertEqual(result["local_scope"], {"custom": 99})
+        finally:
+            _app._injected_scope = old
+
+    def test_no_injected_scope_empty_local_scope_returns_empty_dict(self):
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = None
+            result = _common_params({})
+            self.assertEqual(result["local_scope"], {})
+        finally:
+            _app._injected_scope = old
+
 
 # ---------------------------------------------------------------------------
 # TestQueueWriter
@@ -491,6 +531,44 @@ class TestWebUIServer(unittest.TestCase):
     def test_get_static_nonexistent_file_404(self):
         status, _, _ = self._get("/static/does_not_exist.png")
         self.assertEqual(status, 404)
+
+    def test_scope_status_no_injection(self):
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = None
+            status, ctype, body = self._get("/api/scope_status")
+            self.assertEqual(status, 200)
+            self.assertIn("application/json", ctype)
+            data = json.loads(body)
+            self.assertFalse(data["injected"])
+            self.assertEqual(data["keys"], [])
+        finally:
+            _app._injected_scope = old
+
+    def test_scope_status_with_injection(self):
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = {"myvar": 1, "another": "hello", "__dunder__": None}
+            status, _, body = self._get("/api/scope_status")
+            self.assertEqual(status, 200)
+            data = json.loads(body)
+            self.assertTrue(data["injected"])
+            self.assertIn("myvar", data["keys"])
+            self.assertIn("another", data["keys"])
+            self.assertNotIn("__dunder__", data["keys"])
+        finally:
+            _app._injected_scope = old
+
+    def test_scope_status_keys_are_strings(self):
+        old = _app._injected_scope
+        try:
+            _app._injected_scope = {"alpha": 1, "beta": 2}
+            _, _, body = self._get("/api/scope_status")
+            data = json.loads(body)
+            for k in data["keys"]:
+                self.assertIsInstance(k, str)
+        finally:
+            _app._injected_scope = old
 
     # ------------------------------------------------------------------ POST /api/cancel
 

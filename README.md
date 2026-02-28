@@ -50,7 +50,7 @@ pip install TyphonBreaker
 
 ### WebUI
 
-启动 WebUI：
+**方式一：命令行启动**
 
 ```
 typhonbreaker webui
@@ -59,6 +59,28 @@ typhonbreaker webui
 浏览器打开：`http://127.0.0.1:6240`
 
 > 注：当前 WebUI 会监听 `0.0.0.0:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
+
+**方式二：Python API 启动（可注入当前变量空间）**
+
+在题目脚本中直接调用 `Typhon.webui(use_current_scope=True)` 来启动 WebUI，
+并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于在函数内
+内联 `import Typhon`，但可通过浏览器 UI 交互操作：
+
+```python
+import re
+import Typhon
+
+def safe_run(cmd):
+    if re.match(r'.*import.*', cmd):
+        return "WAF!"
+    exec(cmd, {'__builtins__': {}})
+
+# 启动 WebUI，注入当前全局变量空间；在浏览器中填写参数并运行
+Typhon.webui(use_current_scope=True)
+```
+
+启动后，WebUI 的 "Local Scope" 字段留空即自动使用注入的变量空间，输入框上方会显示绿色提示横幅。
+若题目 `exec` 使用了受限命名空间（如 `{'__builtins__': {}}`），仍需在 UI 中手动填写。
 
 ### Docker WebUI
 
