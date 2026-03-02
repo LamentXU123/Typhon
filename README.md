@@ -132,8 +132,7 @@ typhonbreaker webui
 **方式二：Python API 启动（可注入当前变量空间）**
 
 在题目脚本中直接调用 `Typhon.webui(use_current_scope=True)` 来启动 WebUI，
-并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于在函数内
-内联 `import Typhon` 再 `Typhon.bypassRCE/bypassREAD`，但可通过浏览器 UI 交互操作。这样可以填写命名空间内题目自定义的变量。
+并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于内联 `import Typhon` 再 `Typhon.bypassRCE/bypassREAD`，但可通过浏览器 UI 交互操作。这样可以填写命名空间内题目自定义的变量。
 
 ```python
 import re
