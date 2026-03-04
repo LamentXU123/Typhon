@@ -172,7 +172,7 @@ USAGE 用户指南
     
     其余参数与 :py:func:`bypassRCE` 相同。
 
-.. function:: webui(host='127.0.0.1', port=6240, use_current_scope=False)
+.. function:: webui(host='127.0.0.1', port=6240, use_current_scope=True)
 
     启动 Typhon WebUI 服务器（阻塞调用）。
 
