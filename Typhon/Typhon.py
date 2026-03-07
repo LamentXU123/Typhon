@@ -746,7 +746,7 @@ Try to bypass blacklist with them. Please be paitent.",
         try_to_restore("builtins2RCEinput", end_of_prog=True)
 
     # Step8: Try inheritance chain
-    if "OBJECT" in tags:
+    if "OBJECT" in tags and generated_path.get("OBJECT", False):
         logger.info("[*] Trying to find inheritance chains.")
         subclasses_len = len(subclasses)
         searched_modules_tmp = deepcopy(searched_modules)
