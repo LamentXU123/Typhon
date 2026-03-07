@@ -564,7 +564,7 @@ def bypasses_output(
     :param generated_path: the generated path
     :return: None
     """
-    from .Typhon import achivements, reminder, log_level_
+    from .Typhon import achievements, reminder, log_level_
 
     if log_level_ == "CRITICAL":
         sys.stdout = sys.__stdout__
@@ -574,7 +574,7 @@ def bypasses_output(
         bypassed_payload = [bypassed_payload]
     if not bypassed_payload is None:
         bypassed_path.extend(bypassed_payload)
-    bypassed_path.extend(achivements.values())
+    bypassed_path.extend(achievements.values())
     for i in bypassed_path:
         if isinstance(i, list):
             i = i[0]
@@ -587,8 +587,8 @@ def bypasses_output(
     print("\n")
     print("-----------Progress-----------")
     print("\n")
-    for i in achivements:
-        payload_len = achivements[i][1]
+    for i in achievements:
+        payload_len = achievements[i][1]
         if payload_len > 1:
             print(
                 "\033[34m" + i + "(" + str(payload_len) + " payloads found): \033[0m",
@@ -599,7 +599,7 @@ def bypasses_output(
                 "\033[34m" + i + "(" + str(payload_len) + " payload found): \033[0m",
                 end="",
             )
-        best_payload = str(achivements[i][0])
+        best_payload = str(achievements[i][0])
         if "\n" in best_payload:
             print("\n" + best_payload)
         else:
