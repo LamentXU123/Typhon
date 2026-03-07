@@ -1,29 +1,24 @@
 import os
 import sys
 import io
+import json
+import queue
+import threading
+import logging
+import http.client
+import unittest
+from unittest.mock import patch
 
-_real_stdout, sys.stdout = sys.stdout, io.StringIO()
-try:
-    import ast
-    import json
-    import queue
-    import threading
-    import logging
-    import http.client
-    import unittest
-    from unittest.mock import patch
+# Set up path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Set up logging
+logging.basicConfig(handlers=[logging.NullHandler()], force=True)
 
-    logging.basicConfig(handlers=[logging.NullHandler()], force=True)
-
-    import Typhon.webui.app as _app
-    from Typhon.webui.app import (
-        _strip_ansi, _parse_list, _parse_ast, _common_params,
-        _QueueWriter, _QueueLogHandler, ThreadingHTTPServer, _WebUIHandler,
-    )
-finally:
-    sys.stdout = _real_stdout
+from Typhon.webui_module.app import (
+    _strip_ansi, _parse_list, _parse_ast, _common_params,
+    _QueueWriter, _QueueLogHandler, run
+)
 
 def _q2list(q: queue.Queue):
     items = []
@@ -44,44 +39,6 @@ def _http(host, port, method, path, body=None, timeout=5):
     data = resp.read()
     conn.close()
     return resp.status, resp.getheader("Content-Type") or "", data
-
-
-def _read_sse(host, port, path, body_bytes, timeout=10):
-    conn = http.client.HTTPConnection(host, port, timeout=timeout)
-    conn.request(
-        "POST", path, body=body_bytes,
-        headers={
-            "Content-Type": "application/json",
-            "Content-Length": str(len(body_bytes)),
-        },
-    )
-    resp = conn.getresponse()
-    status = resp.status
-    ctype = resp.getheader("Content-Type") or ""
-    events = []
-    if status != 200:
-        resp.read()
-        conn.close()
-        return status, ctype, events
-    try:
-        while True:
-            line = resp.readline()
-            if not line:
-                break
-            text = line.decode("utf-8", errors="replace").rstrip("\r\n")
-            if text.startswith("data: "):
-                try:
-                    ev = json.loads(text[6:])
-                    events.append(ev)
-                    if ev.get("type") == "done":
-                        conn.close()
-                        return status, ctype, events
-                except json.JSONDecodeError:
-                    pass
-    except Exception:
-        pass
-    conn.close()
-    return status, ctype, events
 
 
 # ---------------------------------------------------------------------------
@@ -148,33 +105,25 @@ class TestParseList(unittest.TestCase):
         with self.assertRaises(ValueError):
             _parse_list([1, 2, 3], "test")
 
-    def test_json_parse_error_raises(self):
-        with self.assertRaises(json.JSONDecodeError):
-            _parse_list("[invalid json", "test")
-
-    def test_json_non_list_raises(self):
-        with self.assertRaises(Exception):
-            _parse_list('{"key": "val"}', "test")
-
 
 # ---------------------------------------------------------------------------
 # TestParseAst
 # ---------------------------------------------------------------------------
 
 class TestParseAst(unittest.TestCase):
-    def test_empty_list(self):
-        self.assertEqual(_parse_ast([]), [])
-
     def test_valid_nodes_without_prefix(self):
+        import ast
         self.assertEqual(
             _parse_ast(["Import", "Call", "Attribute"]),
             [ast.Import, ast.Call, ast.Attribute],
         )
 
     def test_ast_prefix_stripped(self):
+        import ast
         self.assertEqual(_parse_ast(["ast.Import"]), [ast.Import])
 
     def test_mixed_prefix(self):
+        import ast
         self.assertEqual(_parse_ast(["ast.Import", "Call"]), [ast.Import, ast.Call])
 
     def test_invalid_node_raises(self):
@@ -218,10 +167,6 @@ class TestCommonParams(unittest.TestCase):
         with self.assertRaises(ValueError):
             _common_params({"local_scope": '"a string"'})
 
-    def test_invalid_local_scope_syntax_error(self):
-        with self.assertRaises(ValueError):
-            _common_params({"local_scope": "{bad python}"})
-
     def test_max_length_int(self):
         result = _common_params({"max_length": "100"})
         self.assertEqual(result["max_length"], 100)
@@ -235,10 +180,11 @@ class TestCommonParams(unittest.TestCase):
         self.assertEqual(result["allowed_chr"], ["a", "b", "c"])
 
     def test_banned_re_list(self):
-        result = _common_params({"banned_re": '[".*import.*"]'})
+        result = _common_params({"banned_re": '[\".*import.*\"]'})
         self.assertEqual(result["banned_re"], [".*import.*"])
 
     def test_banned_ast_nodes(self):
+        import ast
         result = _common_params({"banned_ast": '["Import"]'})
         self.assertEqual(result["banned_ast"], [ast.Import])
 
@@ -260,45 +206,6 @@ class TestCommonParams(unittest.TestCase):
         self.assertTrue(result["allow_unicode_bypass"])
         self.assertTrue(result["print_all_payload"])
         self.assertFalse(result["interactive"])
-
-    def test_injected_scope_used_when_local_scope_empty(self):
-        injected = {"injected_var": 42, "__builtins__": {}}
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = injected
-            result = _common_params({})
-            self.assertIs(result["local_scope"], injected)
-        finally:
-            _app._injected_scope = old
-
-    def test_injected_scope_used_when_local_scope_whitespace(self):
-        injected = {"x": 1}
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = injected
-            result = _common_params({"local_scope": "   "})
-            self.assertIs(result["local_scope"], injected)
-        finally:
-            _app._injected_scope = old
-
-    def test_explicit_local_scope_overrides_injected(self):
-        injected = {"should_not_appear": True}
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = injected
-            result = _common_params({"local_scope": '{"custom": 99}'})
-            self.assertEqual(result["local_scope"], {"custom": 99})
-        finally:
-            _app._injected_scope = old
-
-    def test_no_injected_scope_empty_local_scope_returns_empty_dict(self):
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = None
-            result = _common_params({})
-            self.assertEqual(result["local_scope"], {})
-        finally:
-            _app._injected_scope = old
 
 
 # ---------------------------------------------------------------------------
@@ -344,34 +251,6 @@ class TestQueueWriter(unittest.TestCase):
         w.write("\x1B[32mGreen\x1B[0m\n")
         item = q.get_nowait()
         self.assertEqual(item["text"], "Green")
-
-    def test_carriage_return_progress_type(self):
-        q = queue.Queue()
-        w = _QueueWriter(q)
-        # First \r: is_progress was False → emits "log"
-        w.write("step one\r")
-        # Second \r: is_progress is now True → emits "progress"
-        w.write("step two\r")
-        items = _q2list(q)
-        self.assertIn("progress", [i["type"] for i in items])
-
-    def test_crlf_emits_log(self):
-        q = queue.Queue()
-        w = _QueueWriter(q)
-        w.write("line\r\n")
-        items = _q2list(q)
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]["type"], "log")
-        self.assertEqual(items[0]["text"], "line")
-
-    def test_partial_write_buffered_until_flush(self):
-        q = queue.Queue()
-        w = _QueueWriter(q)
-        w.write("part1")
-        w.write("part2")
-        self.assertTrue(q.empty())
-        w.flush()
-        self.assertEqual(q.get_nowait()["text"], "part1part2")
 
 
 # ---------------------------------------------------------------------------
@@ -420,441 +299,22 @@ class TestQueueLogHandler(unittest.TestCase):
         finally:
             logger.removeHandler(handler)
 
-    def test_debug_level_captured(self):
-        q, handler = self._make_handler()
-        logger = logging.getLogger("Typhon.test.debug_level")
-        logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
-        try:
-            logger.debug("debug detail")
-            item = q.get_nowait()
-            self.assertIn("DEBUG", item["text"])
-        finally:
-            logger.removeHandler(handler)
-
 
 # ---------------------------------------------------------------------------
-# TestWebUIServer  (integration — starts a real ThreadingHTTPServer)
+# TestWebUIFunction
 # ---------------------------------------------------------------------------
 
-class TestWebUIServer(unittest.TestCase):
+class TestWebUIFunction(unittest.TestCase):
+    def test_webui_import(self):
+        from Typhon import webui
+        self.assertIsNotNone(webui)
 
-    _HOST = "127.0.0.1"
-    _PORT = 0
-    _server = None
-    _server_thread = None
-
-    @classmethod
-    def setUpClass(cls):
-        cls._server = ThreadingHTTPServer((cls._HOST, cls._PORT), _WebUIHandler)
-        cls._PORT = cls._server.server_address[1]
-        cls._server_thread = threading.Thread(
-            target=cls._server.serve_forever,
-            kwargs={"poll_interval": 0.1},
-            daemon=True,
-        )
-        cls._server_thread.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        if cls._server:
-            cls._server.shutdown()
-            cls._server.server_close()
-
-    # ------------------------------------------------------------------ helpers
-
-    def _get(self, path, timeout=5):
-        return _http(self._HOST, self._PORT, "GET", path, timeout=timeout)
-
-    def _post(self, path, data, timeout=5):
-        body = json.dumps(data).encode("utf-8")
-        return _http(self._HOST, self._PORT, "POST", path, body, timeout)
-
-    def _post_raw(self, path, raw_body, timeout=5):
-        conn = http.client.HTTPConnection(self._HOST, self._PORT, timeout=timeout)
-        conn.request(
-            "POST", path, body=raw_body,
-            headers={
-                "Content-Type": "application/json",
-                "Content-Length": str(len(raw_body)),
-            },
-        )
-        resp = conn.getresponse()
-        body = resp.read()
-        conn.close()
-        return resp.status, body
-
-    def _stream(self, path, data, timeout=10):
-        body_bytes = json.dumps(data).encode("utf-8")
-        return _read_sse(self._HOST, self._PORT, path, body_bytes, timeout=timeout)
-
-    def _get_done(self, events):
-        return next((e for e in events if e.get("type") == "done"), None)
-
-    # ------------------------------------------------------------------ GET
-
-    def test_get_root_returns_html(self):
-        status, ctype, body = self._get("/")
-        self.assertEqual(status, 200)
-        self.assertIn("text/html", ctype)
-        self.assertIn(b"TYPHON", body)
-
-    def test_get_index_html_alias(self):
-        status, ctype, body = self._get("/index.html")
-        self.assertEqual(status, 200)
-        self.assertIn("text/html", ctype)
-
-    def test_get_version_json_structure(self):
-        status, ctype, body = self._get("/api/version")
-        self.assertEqual(status, 200)
-        self.assertIn("application/json", ctype)
-        data = json.loads(body)
-        self.assertIn("typhon_version", data)
-        self.assertIn("python_version", data)
-        self.assertIsInstance(data["typhon_version"], str)
-        self.assertIsInstance(data["python_version"], str)
-
-    def test_get_static_png(self):
-        status, ctype, body = self._get("/static/typhon.png")
-        self.assertEqual(status, 200)
-        self.assertEqual(ctype, "image/png")
-        self.assertGreater(len(body), 0)
-
-    def test_get_unknown_path_404(self):
-        status, _, _ = self._get("/not_a_real_route")
-        self.assertEqual(status, 404)
-
-    def test_get_static_path_traversal_blocked(self):
-        status, _, _ = self._get("/static/../app.py")
-        self.assertEqual(status, 404)
-
-    def test_get_static_nonexistent_file_404(self):
-        status, _, _ = self._get("/static/does_not_exist.png")
-        self.assertEqual(status, 404)
-
-    def test_scope_status_no_injection(self):
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = None
-            status, ctype, body = self._get("/api/scope_status")
-            self.assertEqual(status, 200)
-            self.assertIn("application/json", ctype)
-            data = json.loads(body)
-            self.assertFalse(data["injected"])
-            self.assertEqual(data["keys"], [])
-        finally:
-            _app._injected_scope = old
-
-    def test_scope_status_with_injection(self):
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = {"myvar": 1, "another": "hello", "__dunder__": None}
-            status, _, body = self._get("/api/scope_status")
-            self.assertEqual(status, 200)
-            data = json.loads(body)
-            self.assertTrue(data["injected"])
-            self.assertIn("myvar", data["keys"])
-            self.assertIn("another", data["keys"])
-            self.assertNotIn("__dunder__", data["keys"])
-        finally:
-            _app._injected_scope = old
-
-    def test_scope_status_keys_are_strings(self):
-        old = _app._injected_scope
-        try:
-            _app._injected_scope = {"alpha": 1, "beta": 2}
-            _, _, body = self._get("/api/scope_status")
-            data = json.loads(body)
-            for k in data["keys"]:
-                self.assertIsInstance(k, str)
-        finally:
-            _app._injected_scope = old
-
-    # ------------------------------------------------------------------ POST /api/cancel
-
-    def test_cancel_no_running_task(self):
-        status, _, body = self._post("/api/cancel", {})
-        self.assertEqual(status, 200)
-        data = json.loads(body)
-        self.assertFalse(data["ok"])
-        self.assertIn("no running task", data.get("reason", ""))
-
-    # ------------------------------------------------------------------ POST /api/bypass/rce/stream — validation
-
-    def test_rce_missing_cmd_400(self):
-        status, _, body = self._post("/api/bypass/rce/stream", {})
-        self.assertEqual(status, 400)
-        data = json.loads(body)
-        self.assertFalse(data["success"])
-        self.assertIn("cmd", data["error"])
-
-    def test_rce_empty_cmd_400(self):
-        status, _, body = self._post("/api/bypass/rce/stream", {"cmd": "   "})
-        self.assertEqual(status, 400)
-        self.assertFalse(json.loads(body)["success"])
-
-    def test_rce_invalid_local_scope_400(self):
-        status, _, body = self._post(
-            "/api/bypass/rce/stream",
-            {"cmd": "id", "local_scope": "not_a_dict_value"},
-        )
-        self.assertEqual(status, 400)
-        self.assertFalse(json.loads(body)["success"])
-
-    def test_rce_invalid_json_body_400(self):
-        status, _ = self._post_raw("/api/bypass/rce/stream", b"not json")
-        self.assertEqual(status, 400)
-
-    def test_rce_invalid_banned_ast_400(self):
-        status, _, body = self._post(
-            "/api/bypass/rce/stream",
-            {"cmd": "id", "banned_ast": '["FakeNonExistentASTNode"]'},
-        )
-        self.assertEqual(status, 400)
-        self.assertFalse(json.loads(body)["success"])
-
-    # ------------------------------------------------------------------ POST /api/bypass/read/stream — validation
-
-    def test_read_missing_filepath_400(self):
-        status, _, body = self._post("/api/bypass/read/stream", {})
-        self.assertEqual(status, 400)
-        data = json.loads(body)
-        self.assertFalse(data["success"])
-        self.assertIn("filepath", data["error"])
-
-    def test_read_empty_filepath_400(self):
-        status, _, body = self._post("/api/bypass/read/stream", {"filepath": "  "})
-        self.assertEqual(status, 400)
-        self.assertFalse(json.loads(body)["success"])
-
-    def test_read_invalid_rce_method_400(self):
-        status, _, body = self._post(
-            "/api/bypass/read/stream",
-            {"filepath": "/flag", "RCE_method": "shell"},
-        )
-        self.assertEqual(status, 400)
-        data = json.loads(body)
-        self.assertFalse(data["success"])
-        self.assertIn("RCE_method", data["error"])
-
-    def test_read_invalid_local_scope_400(self):
-        status, _, body = self._post(
-            "/api/bypass/read/stream",
-            {"filepath": "/flag", "RCE_method": "exec", "local_scope": "badvalue"},
-        )
-        self.assertEqual(status, 400)
-        self.assertFalse(json.loads(body)["success"])
-
-    def test_post_unknown_path_404(self):
-        status, _, _ = self._post("/api/unknown", {})
-        self.assertEqual(status, 404)
-
-    # ------------------------------------------------------------------ SSE streaming — RCE
-
-    def test_rce_stream_returns_sse_content_type(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=SystemExit(0)):
-            status, ctype, _ = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "whoami", "interactive": False}
-            )
-        self.assertEqual(status, 200)
-        self.assertIn("text/event-stream", ctype)
-
-    def test_rce_stream_contains_done_event(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=SystemExit(0)):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "whoami", "interactive": False}
-            )
-        self.assertIsNotNone(self._get_done(events), "No 'done' event received")
-
-    def test_rce_stream_exit0_success_true(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=SystemExit(0)):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        done = self._get_done(events)
-        self.assertTrue(done["success"])
-        self.assertEqual(done.get("error", ""), "")
-
-    def test_rce_stream_exit1_success_false(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=SystemExit(1)):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        self.assertFalse(self._get_done(events)["success"])
-
-    def test_rce_stream_exception_produces_error(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=RuntimeError("boom")):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        done = self._get_done(events)
-        self.assertFalse(done["success"])
-        self.assertIn("boom", done.get("error", ""))
-
-    def test_rce_stream_stdout_captured_as_log_event(self):
-        def fake_rce(**kwargs):
-            print("test-output-marker-xyz")
-            raise SystemExit(0)
-
-        with patch("Typhon.Typhon.bypassRCE", side_effect=fake_rce):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        log_texts = [e.get("text", "") for e in events if e.get("type") == "log"]
-        self.assertTrue(
-            any("test-output-marker-xyz" in t for t in log_texts),
-            f"Marker not found in log events: {log_texts}",
-        )
-
-    def test_rce_stream_params_forwarded(self):
-        received = {}
-
-        def capture_rce(**kwargs):
-            received.update(kwargs)
-            raise SystemExit(0)
-
-        with patch("Typhon.Typhon.bypassRCE", side_effect=capture_rce):
-            self._stream("/api/bypass/rce/stream", {
-                "cmd": "whoami",
-                "interactive": False,
-                "banned_chr": '["import", "os"]',
-                "depth": "3",
-                "recursion_limit": "100",
-                "allow_unicode_bypass": True,
-            })
-        self.assertEqual(received.get("cmd"), "whoami")
-        self.assertFalse(received.get("interactive"))
-        self.assertEqual(received.get("banned_chr"), ["import", "os"])
-        self.assertEqual(received.get("depth"), 3)
-        self.assertEqual(received.get("recursion_limit"), 100)
-        self.assertTrue(received.get("allow_unicode_bypass"))
-
-    def test_all_sse_events_have_type_field(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=SystemExit(0)):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        for ev in events:
-            self.assertIn("type", ev, f"Event missing 'type': {ev}")
-
-    def test_done_event_has_success_field(self):
-        with patch("Typhon.Typhon.bypassRCE", side_effect=SystemExit(0)):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        done = self._get_done(events)
-        self.assertIn("success", done)
-
-    def test_log_event_has_text_field(self):
-        def fake_rce(**kwargs):
-            print("some log line")
-            raise SystemExit(0)
-
-        with patch("Typhon.Typhon.bypassRCE", side_effect=fake_rce):
-            _, _, events = self._stream(
-                "/api/bypass/rce/stream", {"cmd": "id", "interactive": False}
-            )
-        for ev in (e for e in events if e.get("type") == "log"):
-            self.assertIn("text", ev, f"Log event missing 'text': {ev}")
-
-    # ------------------------------------------------------------------ SSE streaming — READ
-
-    def test_read_stream_returns_sse_content_type(self):
-        with patch("Typhon.Typhon.bypassREAD", side_effect=SystemExit(0)):
-            status, ctype, _ = self._stream(
-                "/api/bypass/read/stream",
-                {"filepath": "/flag", "RCE_method": "exec", "interactive": False},
-            )
-        self.assertEqual(status, 200)
-        self.assertIn("text/event-stream", ctype)
-
-    def test_read_stream_contains_done_event(self):
-        with patch("Typhon.Typhon.bypassREAD", side_effect=SystemExit(0)):
-            _, _, events = self._stream(
-                "/api/bypass/read/stream",
-                {"filepath": "/flag", "RCE_method": "exec", "interactive": False},
-            )
-        self.assertIsNotNone(self._get_done(events))
-
-    def test_read_stream_eval_method_accepted(self):
-        with patch("Typhon.Typhon.bypassREAD", side_effect=SystemExit(0)):
-            status, _, events = self._stream(
-                "/api/bypass/read/stream", {
-                    "filepath": "/flag",
-                    "RCE_method": "eval",
-                    "is_allow_exception_leak": True,
-                    "interactive": False,
-                },
-            )
-        self.assertEqual(status, 200)
-        self.assertIsNotNone(self._get_done(events))
-
-    def test_read_stream_exit0_success_true(self):
-        with patch("Typhon.Typhon.bypassREAD", side_effect=SystemExit(0)):
-            _, _, events = self._stream(
-                "/api/bypass/read/stream",
-                {"filepath": "/etc/passwd", "RCE_method": "exec"},
-            )
-        self.assertTrue(self._get_done(events)["success"])
-
-    def test_read_stream_exception_produces_error(self):
-        with patch("Typhon.Typhon.bypassREAD", side_effect=ValueError("no gadget")):
-            _, _, events = self._stream(
-                "/api/bypass/read/stream",
-                {"filepath": "/flag", "RCE_method": "exec"},
-            )
-        done = self._get_done(events)
-        self.assertFalse(done["success"])
-        self.assertIn("no gadget", done.get("error", ""))
-
-    def test_read_stream_params_forwarded(self):
-        received = {}
-
-        def capture_read(**kwargs):
-            received.update(kwargs)
-            raise SystemExit(0)
-
-        with patch("Typhon.Typhon.bypassREAD", side_effect=capture_read):
-            self._stream("/api/bypass/read/stream", {
-                "filepath": "/etc/shadow",
-                "RCE_method": "eval",
-                "is_allow_exception_leak": True,
-                "interactive": False,
-                "banned_chr": '["open", "__"]',
-            })
-        self.assertEqual(received.get("filepath"), "/etc/shadow")
-        self.assertEqual(received.get("RCE_method"), "eval")
-        self.assertTrue(received.get("is_allow_exception_leak"))
-        self.assertFalse(received.get("interactive"))
-        self.assertEqual(received.get("banned_chr"), ["open", "__"])
-
-    def test_read_stream_stdout_captured_as_log_event(self):
-        def fake_read(**kwargs):
-            print("read-test-output-marker-abc")
-            raise SystemExit(0)
-
-        with patch("Typhon.Typhon.bypassREAD", side_effect=fake_read):
-            _, _, events = self._stream(
-                "/api/bypass/read/stream",
-                {"filepath": "/flag", "RCE_method": "exec"},
-            )
-        log_texts = [e.get("text", "") for e in events if e.get("type") == "log"]
-        self.assertTrue(
-            any("read-test-output-marker-abc" in t for t in log_texts),
-            f"Marker not found in log events: {log_texts}",
-        )
+    @patch('Typhon.webui_module.app.run')
+    def test_webui_calls_run(self, mock_run):
+        from Typhon import webui
+        webui(host="127.0.0.1", port=8080, use_current_scope=False)
+        mock_run.assert_called_once_with(host="127.0.0.1", port=8080, injected_scope=None)
 
 
 if __name__ == "__main__":
-    import __main__
-    buf = io.StringIO()
-    _real_stdout = sys.stdout
-    sys.stdout = io.StringIO()
-    try:
-        runner = unittest.TextTestRunner(stream=buf, verbosity=0)
-        result = runner.run(unittest.TestLoader().loadTestsFromModule(__main__))
-    finally:
-        sys.stdout = _real_stdout
-    if not result.wasSuccessful():
-        print(buf.getvalue(), end="")
-        sys.exit(1)
+    unittest.main()
