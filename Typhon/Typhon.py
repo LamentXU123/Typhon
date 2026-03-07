@@ -40,7 +40,7 @@ from .utils import *
 # The RCE data including RCE functions and their parameters.
 from .RCE_data import *
 
-VERSION = "1.0.13.7"
+VERSION = "1.0.13.9"
 BANNER = (
     r"""
     .-')          _                 Typhon: a pyjail bypassing tool
@@ -608,15 +608,26 @@ Try to bypass blacklist with them. Please be paitent.",
                     check_result = exec_with_returns(i, original_scope)
                     original_scope.pop("__return__", None)
                     if check_result == __builtins__ and type(check_result) == dict:
-                        if not builtin_dict_found_count:
-                            logger.info(
-                                "[*] Using %s as the restored builtins dict.", i
-                            )
-                            tagged_scope[i] = [check_result, "BUILTINS_SET"]
-                            builtin_dict_payload = i
-                            tags.append("BUILTINS_SET")
-                            generated_path["BUILTINS_SET"] = i
-                        builtin_dict_found_count += 1
+                        if is_localscope_set == True:
+                            if not builtin_dict_found_count:
+                                logger.info(
+                                    "[*] Using %s as the restored builtins dict.", i
+                                )
+                                tagged_scope[i] = [check_result, "BUILTINS_SET"]
+                                builtin_dict_payload = i
+                                tags.append("BUILTINS_SET")
+                                generated_path["BUILTINS_SET"] = i
+                            builtin_dict_found_count += 1
+                        else:
+                            if not builtin_module_found_count:
+                                logger.info(
+                                    "[*] Using %s as the restored builtins module.", i
+                                )
+                                tagged_scope[i] = [check_result, "MODULE_BUILTINS"]
+                                builtin_module_payload = i
+                                tags.append("MODULE_BUILTINS")
+                                generated_path["MODULE_BUILTINS"] = i
+                            builtin_module_found_count += 1                            
                     elif check_result == builtins and type(check_result) == ModuleType:
                         if not builtin_module_found_count:
                             logger.info(
@@ -662,7 +673,7 @@ Try to bypass blacklist with them. Please be paitent.",
     # Step7: Try to restore __builtins__ in other namespaces (if possible)
     # The code is somehow duplicated with the previous step, but I'm not turning it to one func caz
     # it is only used twice.
-    if "BUILTINS_SET" not in tags and "MODULE_BUILTINS" not in tags:
+    if "BUILTINS_SET" not in tags or "MODULE_BUILTINS" not in tags:
         logger.info("[*] try to find __builtins__ in other namespaces.")
         builtin_path = filter_path_list(
             RCE_data["restore_builtins_in_other_ns"], tagged_scope
