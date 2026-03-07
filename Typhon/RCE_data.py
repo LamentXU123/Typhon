@@ -340,6 +340,8 @@ RCE_data = {
             "linecache",
             "Can not be used directly, must be used in expressions replacing FileIO of the target file. ",
         ],
+        ["pathlib.Path(COMMAND).read_text()", "pathlib"],
+        ["pathlib.Path(COMMAND).read_bytes()", "pathlib"],
     ],
     "filecontentsio": [
         ["io.FileIO(COMMAND)", "io"],

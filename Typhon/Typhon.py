@@ -144,6 +144,7 @@ def bypassMAIN(
         "reprlib",
         "sys",
         "linecache",
+        "pathlib",
         "pty",
         "io",
         "ctypes",
