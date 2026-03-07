@@ -12,6 +12,7 @@ try:
     import http.client
     import unittest
     from unittest.mock import patch
+
     # Set up path
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -19,18 +20,26 @@ try:
     logging.basicConfig(handlers=[logging.NullHandler()], force=True)
 
     from Typhon.webui_module.app import (
-        _strip_ansi, _parse_list, _parse_ast, _common_params,
-        _QueueWriter, _QueueLogHandler, ThreadingHTTPServer, _WebUIHandler
+        _strip_ansi,
+        _parse_list,
+        _parse_ast,
+        _common_params,
+        _QueueWriter,
+        _QueueLogHandler,
+        ThreadingHTTPServer,
+        _WebUIHandler,
     )
 
 finally:
     sys.stdout = _real_stdout
+
 
 def _q2list(q: queue.Queue):
     items = []
     while not q.empty():
         items.append(q.get_nowait())
     return items
+
 
 def _http(host, port, method, path, body=None, timeout=5):
     headers = {}
@@ -50,7 +59,9 @@ def _http(host, port, method, path, body=None, timeout=5):
 def _read_sse(host, port, path, body_bytes, timeout=10):
     conn = http.client.HTTPConnection(host, port, timeout=timeout)
     conn.request(
-        "POST", path, body=body_bytes,
+        "POST",
+        path,
+        body=body_bytes,
         headers={
             "Content-Type": "application/json",
             "Content-Length": str(len(body_bytes)),
@@ -89,12 +100,13 @@ def _read_sse(host, port, path, body_bytes, timeout=10):
 # TestStripAnsi
 # ---------------------------------------------------------------------------
 
+
 class TestStripAnsi(unittest.TestCase):
     def test_strips_color_codes(self):
-        self.assertEqual(_strip_ansi("\x1B[31mRed\x1B[0m"), "Red")
+        self.assertEqual(_strip_ansi("\x1b[31mRed\x1b[0m"), "Red")
 
     def test_strips_bold(self):
-        self.assertEqual(_strip_ansi("\x1B[1mBold\x1B[0m"), "Bold")
+        self.assertEqual(_strip_ansi("\x1b[1mBold\x1b[0m"), "Bold")
 
     def test_no_ansi_unchanged(self):
         self.assertEqual(_strip_ansi("plain text"), "plain text")
@@ -103,11 +115,11 @@ class TestStripAnsi(unittest.TestCase):
         self.assertEqual(_strip_ansi(""), "")
 
     def test_only_ansi_becomes_empty(self):
-        self.assertEqual(_strip_ansi("\x1B[0m"), "")
+        self.assertEqual(_strip_ansi("\x1b[0m"), "")
 
     def test_multiple_sequences(self):
         self.assertEqual(
-            _strip_ansi("\x1B[32mGreen\x1B[0m and \x1B[31mRed\x1B[0m"),
+            _strip_ansi("\x1b[32mGreen\x1b[0m and \x1b[31mRed\x1b[0m"),
             "Green and Red",
         )
 
@@ -115,6 +127,7 @@ class TestStripAnsi(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # TestParseList
 # ---------------------------------------------------------------------------
+
 
 class TestParseList(unittest.TestCase):
     def test_none_returns_empty(self):
@@ -162,6 +175,7 @@ class TestParseList(unittest.TestCase):
 # TestParseAst
 # ---------------------------------------------------------------------------
 
+
 class TestParseAst(unittest.TestCase):
     def test_empty_list(self):
         self.assertEqual(_parse_ast([]), [])
@@ -186,6 +200,7 @@ class TestParseAst(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # TestCommonParams
 # ---------------------------------------------------------------------------
+
 
 class TestCommonParams(unittest.TestCase):
     def test_defaults(self):
@@ -253,18 +268,22 @@ class TestCommonParams(unittest.TestCase):
         self.assertEqual(result["recursion_limit"], 500)
 
     def test_bool_flags(self):
-        result = _common_params({
-            "allow_unicode_bypass": True,
-            "print_all_payload": True,
-            "interactive": False,
-        })
+        result = _common_params(
+            {
+                "allow_unicode_bypass": True,
+                "print_all_payload": True,
+                "interactive": False,
+            }
+        )
         self.assertTrue(result["allow_unicode_bypass"])
         self.assertTrue(result["print_all_payload"])
         self.assertFalse(result["interactive"])
 
+
 # ---------------------------------------------------------------------------
 # TestQueueWriter
 # ---------------------------------------------------------------------------
+
 
 class TestQueueWriter(unittest.TestCase):
     def test_newline_emits_log_event(self):
@@ -302,7 +321,7 @@ class TestQueueWriter(unittest.TestCase):
     def test_strips_ansi_from_log(self):
         q = queue.Queue()
         w = _QueueWriter(q)
-        w.write("\x1B[32mGreen\x1B[0m\n")
+        w.write("\x1b[32mGreen\x1b[0m\n")
         item = q.get_nowait()
         self.assertEqual(item["text"], "Green")
 
@@ -338,6 +357,7 @@ class TestQueueWriter(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # TestQueueLogHandler
 # ---------------------------------------------------------------------------
+
 
 class TestQueueLogHandler(unittest.TestCase):
     def _make_handler(self):
@@ -398,6 +418,7 @@ class TestQueueLogHandler(unittest.TestCase):
 # TestWebUIServer  (integration — starts a real ThreadingHTTPServer)
 # ---------------------------------------------------------------------------
 
+
 class TestWebUIServer(unittest.TestCase):
 
     _HOST = "127.0.0.1"
@@ -434,7 +455,9 @@ class TestWebUIServer(unittest.TestCase):
     def _post_raw(self, path, raw_body, timeout=5):
         conn = http.client.HTTPConnection(self._HOST, self._PORT, timeout=timeout)
         conn.request(
-            "POST", path, body=raw_body,
+            "POST",
+            path,
+            body=raw_body,
             headers={
                 "Content-Type": "application/json",
                 "Content-Length": str(len(raw_body)),
@@ -637,14 +660,17 @@ class TestWebUIServer(unittest.TestCase):
             raise SystemExit(0)
 
         with patch("Typhon.Typhon.bypassRCE", side_effect=capture_rce):
-            self._stream("/api/bypass/rce/stream", {
-                "cmd": "whoami",
-                "interactive": False,
-                "banned_chr": '["import", "os"]',
-                "depth": "3",
-                "recursion_limit": "100",
-                "allow_unicode_bypass": True,
-            })
+            self._stream(
+                "/api/bypass/rce/stream",
+                {
+                    "cmd": "whoami",
+                    "interactive": False,
+                    "banned_chr": '["import", "os"]',
+                    "depth": "3",
+                    "recursion_limit": "100",
+                    "allow_unicode_bypass": True,
+                },
+            )
         self.assertEqual(received.get("cmd"), "whoami")
         self.assertFalse(received.get("interactive"))
         self.assertEqual(received.get("banned_chr"), ["import", "os"])
@@ -702,7 +728,8 @@ class TestWebUIServer(unittest.TestCase):
     def test_read_stream_eval_method_accepted(self):
         with patch("Typhon.Typhon.bypassREAD", side_effect=SystemExit(0)):
             status, _, events = self._stream(
-                "/api/bypass/read/stream", {
+                "/api/bypass/read/stream",
+                {
                     "filepath": "/flag",
                     "RCE_method": "eval",
                     "is_allow_exception_leak": True,
@@ -738,13 +765,16 @@ class TestWebUIServer(unittest.TestCase):
             raise SystemExit(0)
 
         with patch("Typhon.Typhon.bypassREAD", side_effect=capture_read):
-            self._stream("/api/bypass/read/stream", {
-                "filepath": "/etc/shadow",
-                "RCE_method": "eval",
-                "is_allow_exception_leak": True,
-                "interactive": False,
-                "banned_chr": '["open", "__"]',
-            })
+            self._stream(
+                "/api/bypass/read/stream",
+                {
+                    "filepath": "/etc/shadow",
+                    "RCE_method": "eval",
+                    "is_allow_exception_leak": True,
+                    "interactive": False,
+                    "banned_chr": '["open", "__"]',
+                },
+            )
         self.assertEqual(received.get("filepath"), "/etc/shadow")
         self.assertEqual(received.get("RCE_method"), "eval")
         self.assertTrue(received.get("is_allow_exception_leak"))
@@ -770,6 +800,7 @@ class TestWebUIServer(unittest.TestCase):
 
 if __name__ == "__main__":
     import __main__
+
     buf = io.StringIO()
     _real_stdout = sys.stdout
     sys.stdout = io.StringIO()
