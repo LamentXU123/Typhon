@@ -919,7 +919,7 @@ class BypassGenerator:
         tree = ast.parse(payload, mode="eval")
         new_body = Transformer().visit(tree.body)
         ast.fix_missing_locations(new_body)
-        return emit_min(new_body, name)
+        return self.nested_bytes_decoder(emit_min(new_body, name))
 
     @bypasser_must_work_with(["string_slicing"])
     def string_from_string_dict(self, payload: str) -> str:
@@ -978,9 +978,10 @@ class BypassGenerator:
         transformer = PreservingStringTransformer()
         modified_tree = transformer.visit(tree)
         ast.fix_missing_locations(modified_tree)
-        return ast.unparse(modified_tree).replace(", ", ",")
+        return self.nested_bytes_decoder(ast.unparse(modified_tree).replace(", ", ","))
 
-    @bypasser_must_work_with(["string_to_bytes_plus", "string_to_bytes_comma"])
+    # @bypasser_must_work_with(["string_to_bytes_plus", "string_to_bytes_comma"])
+    # Now it is now treated as a single bypasser.
     def nested_bytes_decoder(self, payload: str) -> str:
         """
         bytes([97]) -> bytes([97]).decode()
