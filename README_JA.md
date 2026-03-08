@@ -1,4 +1,4 @@
-# Typhon: 脳を使わずに pyjail を解くツール
+# Typhon: Lets solve pyjail without brain  
 
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/typhonbreaker?period=total&units=ABBREVIATION&left_color=BLACK&right_color=GREEN&left_text=total%20downloads)](https://pepy.tech/projects/typhonbreaker)
 ![License](https://img.shields.io/badge/license-Apache_2.0-cyan.svg)
