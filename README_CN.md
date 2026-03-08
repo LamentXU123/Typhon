@@ -364,8 +364,6 @@ Copyright (c) 2025 Weilin Du.
 
 Typhon 现已加入 [404星链计划](https://github.com/knownsec/404StarLink)
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Team-intN18-SoybeanSeclab/Typhon&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Team-intN18-SoybeanSeclab/Typhon&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Team-intN18-SoybeanSeclab/Typhon&type=Date" />
-</picture>
+## Stars
+
+[![Stargazers over time](https://starchart.cc/LamentXU123/Typhon.svg?variant=adaptive)](https://starchart.cc/LamentXU123/Typhon)
