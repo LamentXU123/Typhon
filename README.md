@@ -1,4 +1,4 @@
-# Typhon: Lets solve pyjail without brain  
+# Typhon: Let's solve pyjail without brain  
 
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/typhonbreaker?period=total&units=ABBREVIATION&left_color=BLACK&right_color=GREEN&left_text=total%20downloads)](https://pepy.tech/projects/typhonbreaker)
 ![License](https://img.shields.io/badge/license-Apache_2.0-cyan.svg)
@@ -7,16 +7,17 @@
 ![Tests](https://github.com/Team-intN18-SoybeanSeclab/Typhon/actions/workflows/test.yml/badge.svg)
 [![codecov](https://codecov.io/gh/LamentXU123/Typhon/graph/badge.svg?token=JCH6XBAORY)](https://codecov.io/gh/LamentXU123/Typhon)
 
-听着，我已经受够那些愚蠢的CTF pyjail题目了——每次我都要浪费时间在又臭又长的黑名单和各种pyjail总结之间找哪个链子没被过滤，或者在命名空间里一个一个运行`dir()`去找能用的东西。这简直就是一种折磨。
+[English](./README.md), [中文](./README_CN.md), [日本語](./README_JA.md)
 
-所以这就是Typhon（提丰），一个致力于让你不需要脑子也能做pyjail的一把梭工具。
+Listen, I'm fed up with those stupid CTF pyjail challenges — every time I waste time searching through long blacklists and various pyjail summaries to find which chains aren't filtered, or running `dir()` one by one in the namespace to find usable stuff. It's simply torture.
+
+So this is Typhon, a one-click tool dedicated to letting you solve pyjail without using your brain.
 
 ![image](./image/usage_example.gif)
 
-文档: https://typhon.lamentxu.top/  
-博客: https://www.cnblogs.com/LAMENTXU/articles/19101758
-
-**请务必看完本readme后再使用Typhon工具，尤其是[Q&A](#QA)部分。**
+> [!IMPORTANT]
+>
+> **To avoid unnecessary time waste, please read the documentation carefully before use: https://typhon.lamentxu.top/**
 
 - [Highlights](#Highlights)  
 - [How to Use](#How-to-Use)  
@@ -30,17 +31,17 @@
 
 ## Highlights
 
-- 完全开源，免费的一把梭工具  
-- 不需要大脑就能完成pyjail题目，爱护您的脑细胞和眼球
-- 拥有数百条gadgets和几乎所有主流的bypass方法
-- 支持多种函数以达成不同功能，如RCE用`bypassRCE()`, 读文件用`bypassRead()`等等
-- 不依赖第三方库（包含 CLI/WebUI，均为标准库实现）
+- Completely open source, free one-click tool  
+- No need to use your brain to complete pyjail challenges, protecting your brain cells and eyes
+- Has hundreds of gadgets and almost all mainstream bypass methods
+- Supports multiple functions for different purposes, such as `bypassRCE()` for RCE, `bypassRead()` for file reading, etc.
+- No third-party library dependencies (including CLI/WebUI, all implemented with standard libraries)
 
 ## How to Use
 
 ### Install
 
-你可以使用pip进行安装：
+You can install it using pip:
 
 ```
 pip install TyphonBreaker
@@ -48,9 +49,9 @@ pip install TyphonBreaker
 
 ### Step by Step Tutorial
 
-你可以通过[示例文档](https://typhon.lamentxu.top/zh-cn/latest/EXAMPLE.html)中的例题来学习 Typhon 的实战用法。以下仅仅提供一个示例。
+You can learn Typhon's practical usage through the examples in the [example documentation](https://typhon.lamentxu.top/zh-cn/latest/EXAMPLE.html). The following is just an example.
 
-假设有如下题目：
+Suppose we have the following challenge:
 
 ```python
 import re
@@ -66,20 +67,20 @@ def safe_run(cmd):
 safe_run(input("Enter command: "))
 ```
 
-**Step1. 分析waf**
+**Step1. Analyze the WAF**
 
-首先，我们需要分析一下pyjail waf的功能（这可能是唯一需要大脑的地方）。
+First, we need to analyze the pyjail WAF functionality (this might be the only part that requires using your brain).
 
-可以看出，上述题目的waf如下：
+It can be seen that the WAF for the above challenge is as follows:
 
-- 限制长度最大值为160
-- 在exec的命名空间里没有`__builtins__`
-- 禁止使用`builtins`, `import`, `{}`字符
-- 设置了正则表达式`'.*import.*'`限制条件
+- Maximum length limit of 160
+- No `__builtins__` in the exec namespace
+- Forbidden to use `builtins`, `import`, `{}` characters
+- Set with the regular expression `'.*import.*'` restriction
 
-**Step2. 将waf导入Typhon**
+**Step2. Import WAF into Typhon**
 
-首先我们将exec行删除：
+First, we delete the exec line:
 
 ```python
 import re
@@ -94,7 +95,7 @@ def safe_run(cmd):
 safe_run(input("Enter command: "))
 ```
 
-然后，我们以Typhon对应的bypass函数替代exec行，在对应位置导入WAF, **并在该行上方`import Typhon`**：
+Then, we replace the exec line with Typhon's corresponding bypass function, import WAF at the corresponding position, **and add `import Typhon` above that line**:
 
 ```python
 import re
@@ -109,9 +110,9 @@ def safe_run(cmd):
 safe_run(input("Enter command: "))
 ```
 
-**Step3. 运行**
+**Step3. Run**
 
-运行你的题目程序，等待**Jail broken**的信息出现即可。
+Run your challenge program and wait for the **Jail broken** message to appear.
 
 ![image](./image/step-by-step-tutorial.png)
 
@@ -119,20 +120,20 @@ safe_run(input("Enter command: "))
 
 ![image](./image/web_ui_example.png)
 
-**方式一：命令行启动**
+**Method 1: Command line startup**
 
 ```
 typhonbreaker webui
 ```
 
-浏览器打开：`http://127.0.0.1:6240`
+Open in browser: `http://127.0.0.1:6240`
 
-> 注：当前 WebUI 会监听 `127.0.0.1:6240`，如果运行在服务器上请注意访问控制/防火墙配置。
+> Note: The current WebUI listens on `127.0.0.1:6240`. If running on a server, please pay attention to access control/firewall configuration.
 
-**方式二：Python API 启动（可注入当前变量空间）**
+**Method 2: Python API startup (can inject current variable space)**
 
-在题目脚本中直接调用 `Typhon.webui(use_current_scope=True)` 来启动 WebUI，
-并自动将当前 `__main__` 全局变量空间作为 local_scope 注入——效果等同于内联 `import Typhon` 再 `Typhon.bypassRCE/bypassREAD`，但可通过浏览器 UI 交互操作。这样可以填写命名空间内题目自定义的变量。
+Directly call `Typhon.webui(use_current_scope=True)` in the challenge script to start the WebUI,
+and automatically inject the current `__main__` global variable space as local_scope — the effect is equivalent to inline `import Typhon` followed by `Typhon.bypassRCE/bypassREAD`, but can be operated through the browser UI. This allows you to fill in custom variables from the challenge's namespace.
 
 ```python
 import re
@@ -141,31 +142,31 @@ def safe_run(cmd):
     if re.match(r'.*import.*', cmd):
         return "WAF!"
     import Typhon
-    Typhon.webui(use_current_scope=True) # 与 bypassRCE/bypassREAD 相似
+    Typhon.webui(use_current_scope=True) # Similar to bypassRCE/bypassREAD
 ```
 
-启动后，WebUI 的 "Local Scope" 字段留空即自动使用注入的变量空间，输入框上方会显示绿色提示横幅。
-若题目 `exec` 使用了受限命名空间（如 `{'__builtins__': {}}`），仍需在 UI 中手动填写。
+After startup, leave the "Local Scope" field blank in the WebUI to automatically use the injected variable space, and a green banner will appear above the input box.
+If the challenge's `exec` uses a restricted namespace (such as `{'__builtins__': {}}`), it still needs to be manually filled in the UI.
 
 ![image](./image/local_scope_injected_banner.png)
 
 ### Docker WebUI
 
-本仓库包含用于构建 WebUI 镜像的 `Dockerfile`，并提供 GitHub Actions 自动发布到 GHCR。
+This repository contains a `Dockerfile` for building the WebUI image, and provides GitHub Actions to automatically publish to GHCR.
 
-1) 拉取并运行：
+1) Pull and run:
 
 ```
 docker run --rm -p 6240:6240 ghcr.io/lamentxu123/typhonbreaker-webui:latest
 ```
 
-2) 或使用 compose：
+2) Or use compose:
 
 ```
 docker compose up --build
 ```
 
-自定义宿主机端口（容器内仍是 6240）：
+Custom host port (still 6240 inside the container):
 
 ```
 TYPHONBREAKER_PORT=7000 docker compose up --build
@@ -173,9 +174,9 @@ TYPHONBREAKER_PORT=7000 docker compose up --build
 
 ## Q&A
 
-- 何时`import Typhon`？
+- When to `import Typhon`?
 
-一定要将行`import Typhon`放在`Typhon`内置绕过函数的上一行（即使你患有PEP-8强迫症）。否则，`Typhon`将无法通过栈帧获取当前的全局变量空间。
+You must place the line `import Typhon` on the line immediately above Typhon's built-in bypass function (even if you have PEP-8 OCD). Otherwise, `Typhon` will not be able to obtain the current global variable space through the stack frame.
 
 **Do:**
 ```python
@@ -198,63 +199,63 @@ def safe_run(cmd):
 safe_run('cat /f*')
 ```
 
-- 为什么需要使用与题目相同的python版本？
+- Why do I need to use the same Python version as the challenge?
 
-Pyjail中存在一些通过索引寻找对应object的gadgets（如继承链）。继承链的利用随着索引变化很大。因此，请务必确保Typhon的运行环境与题目相同。
+There are some gadgets in Pyjail that find corresponding objects through indexes (such as inheritance chains). The utilization of inheritance chains varies greatly with indexes. Therefore, please make sure that Typhon's runtime environment is the same as the challenge.
 
-**无法保证？**
+**Can't guarantee?**
 
-是的，大多数题目都不会给出对应的python版本。因此，**Typhon会在使用涉及版本的gadgets时做出提示**。  
+Yes, most challenges won't provide the corresponding Python version. Therefore, **Typhon will give a warning when using version-related gadgets**.  
 
 ![image](./image/reminder_example.png)
 
-这种情况下往往需要CTF选手自己去找题目环境中该gadgets需要的索引值。  
+In this case, CTF players often need to find the index values required by the gadgets in the challenge environment themselves.  
 
-- 如果题目的`exec`和`eval`没有限制命名空间怎么办？
+- What if the challenge's `exec` and `eval` don't restrict the namespace?
 
-假设题目没有限制命名空间，则不必填写`local_scope`参数。Typhon会自动使用`import Typhon`时的当前命名空间进行绕过
+If the challenge doesn't restrict the namespace, you don't need to fill in the `local_scope` parameter. Typhon will automatically use the current namespace at the time of `import Typhon` for bypass
 
-- 这个payload我用不了能不能换一个？
+- What if this payload doesn't work for me, can I get another one?
 
-你可以在参数中加上`print_all_payload=True`，Typhon就会打印其生成的所有payload。
+You can add `print_all_payload=True` to the parameters, and Typhon will print all the payloads it generates.
 
-- 这个WEB题好像没开放stdin，我`exec(input())`没用怎么办？
+- This web challenge doesn't seem to open stdin, what should I do if `exec(input())` doesn't work?
 
-你可以在参数中加上`interactive=False`，Typhon就会禁止使用所有涉及`stdin`的payload。
+You can add `interactive=False` to the parameters, and Typhon will prohibit the use of all payloads involving `stdin`.
 
-- 最后输出的payload没回显怎么办？
+- What if the final output payload has no echo?
 
-对于`bypassRCE`，我们认为：**只要命令得到了执行，就是RCE成功。** 至于回显问题，你可以选择反弹shell，时间盲注，或者：添加`print_all_payload=True`参数，查看所有payload，其中可能含有能够成功回显的payload。
+For `bypassRCE`, we believe: **As long as the command is executed, RCE is successful.** As for the echo issue, you can choose to reverse shell, time-based blind injection, or: add the `print_all_payload=True` parameter to view all payloads, which may include payloads that can successfully echo.
 
 ## Proof of Concept
 
-Typhon的工作原理如下：
+Typhon works as follows:
 
 ### bypass by path & technique
 
-我们定义两种bypass方式：
+We define two bypass methods:
 
-- path: 通过不同的载荷进行绕过（例如`os.system('calc')`和`subprocess.Popen('calc')`）  
-- technique: 使用不同技术对相同的有效载荷进行处理从而绕过（例如，`os.system('c'+'a'+'l'+'c')` 和 `os.system('clac'[::-1])`)  
+- path: Bypass through different payloads (e.g., `os.system('calc')` and `subprocess.Popen('calc')`)  
+- technique: Process the same payload using different techniques to bypass (e.g., `os.system('c'+'a'+'l'+'c')` and `os.system('clac'[::-1])`)  
 
-Typhon内置了上百种path。每次我们要绕过获取某个东西时，我们先通过local_scope找到所有可以用的`path`，接下来，通过`bypasser.py`中的`technique`生成每个`path`对应的不同变体，并尝试绕过黑名单。
+Typhon has built-in hundreds of paths. Every time we need to bypass to get something, we first find all available `path` through local_scope, then generate different variants for each `path` through `technique` in `bypasser.py`, and try to bypass the blacklist.
 
 ### gadgets chain
 
-本思路受到[pyjailbreaker](https://github.com/jailctf/pyjailbreaker)工具的启发。
+This idea is inspired by the [pyjailbreaker](https://github.com/jailctf/pyjailbreaker) tool.
 
-pyjailbreaker不直接通过gadgets一步到位实现RCE，而是一步一步寻找RCE链条中需要的项。如假设存在下列黑名单：
+pyjailbreaker doesn't directly implement RCE through gadgets in one step, but looks for the items needed in the RCE chain step by step. For example, assuming the following blacklist:
 
-- 本地命名空间无`__builtins__`
-- 禁止使用`builtins`字符
+- No `__builtins__` in local namespace
+- Forbidden to use `builtins` character
 
-对于这个WAF，Typhon是这样处理的：
+For this WAF, Typhon handles it like this:
 
-- 首先，我们通过`'J'.__class__.__class__`获取`type`
-- 随后，我们找到获取type后可能可以获取builtins的RCE链子`TYPE.__subclasses__(TYPE)[0].register.__globals__['__builtins__']`
-- 已知题目黑名单过滤了`__builtins__`字符，则我们将此path投入bypasser产生数十种变体。选择其中最短的变体：`TYPE.__subclasses__(TYPE)[0].register.__globals__['__snitliub__'[::-1]]`
-- 随后，我们找到获取``__builtins__``后的RCE链子`BUILTINS_SET['breakpoint']()`
-- 最后，我们将代表builtins字典的占位符`BUILTINS_SET`替换为上步中获取的`__builtins__`路径，以此类推，将`TYPE`占位符替换为真实的路径，就得到了最终的payload。
+- First, we get `type` through `'J'.__class__.__class__`
+- Then, we find the RCE chain that can get builtins after getting type: `TYPE.__subclasses__(TYPE)[0].register.__globals__['__builtins__']`
+- Knowing that the challenge blacklist filters the `__builtins__` character, we put this path into the bypasser to generate dozens of variants. Choose the shortest variant: `TYPE.__subclasses__(TYPE)[0].register.__globals__['__snitliub__'[::-1]]`
+- Then, we find the RCE chain after getting ``__builtins__``: `BUILTINS_SET['breakpoint']()`
+- Finally, we replace the placeholder `BUILTINS_SET` representing the builtins dictionary with the `__builtins__` path obtained in the previous step, and so on, replace the `TYPE` placeholder with the real path, and we get the final payload.
 
 ```python
 'J'.__class__.__class__.__subclasses__('J'.__class__.__class__)[0].register.__globals__['__snitliub__'[::-1]]['breakpoint']()
@@ -262,64 +263,66 @@ pyjailbreaker不直接通过gadgets一步到位实现RCE，而是一步一步寻
 
 ### Step by Step
 
-Typhon的workflow顺序如下：
+Typhon's workflow sequence is as follows:
 
-- 每一个终点函数（`bypassRCE`, `bypassREAD`，etc.）都会调用主函数`bypassMAIN`，主函数会尽可能搜集所有的可用gadgets（如上例中的`type`）并将收集到的内容传递给对应的下级函数。
-- `bypassMAIN`函数在简单分析完当前的变量空间后，会：
-  - 尝试直接RCE（如`help()`, `breakporint()`）
-  - 尝试获取生成器
-  - 尝试获取type
-  - 尝试获取object
-  - 尝试获取bytes
-  - 如当前空间中的``__builtins__``未被删除，但被修改，尝试恢复（如`id.__self__`）
-  - 如当前空间中的``__builtins__``被删除，尝试从其他命名空间恢复
-  - 承上，尝试继承链绕过
-  - 尝试获取import包的能力
-  - 尝试直接通过可能恢复的``__builtins__`` RCE
-  - 将结果传递给下级函数
-- 下级函数拿到`bypassMAIN`的结果后，会根据该函数所实现的需求，选择对应的gadgets进行处理（如`bypassRCE`专注于RCE，`bypassREAD`专注于文件读取，`bypassENV`专注于读取环境变量）。其过程与上述相似。
+- Each endpoint function (`bypassRCE`, `bypassREAD`, etc.) will call the main function `bypassMAIN`, which will collect as many available gadgets as possible (such as `type` in the above example) and pass the collected content to the corresponding subordinate functions.
+- After a simple analysis of the current variable space, the `bypassMAIN` function will:
+  - Try direct RCE (such as `help()`, `breakporint()`)
+  - Try to get generator
+  - Try to get type
+  - Try to get object
+  - Try to get bytes
+  - If ``__builtins__`` in the current space is not deleted but modified, try to restore it (such as `id.__self__`)
+  - If ``__builtins__`` in the current space is deleted, try to restore it from other namespaces
+  - Continue, try inheritance chain bypass
+  - Try to get the ability to import packages
+  - Try direct RCE through possibly restored ``__builtins__``
+  - Pass the result to subordinate functions
+- After the subordinate function gets the result of `bypassMAIN`, it will select the corresponding gadgets for processing according to the requirements implemented by the function (such as `bypassRCE` focusing on RCE, `bypassREAD` focusing on file reading, `bypassENV` focusing on reading environment variables). The process is similar to the above.
+
+For the specific implementation process, see the blog: https://www.cnblogs.com/LAMENTXU/articles/19101758
 
 ## Limitations
 
-- 目前Typhon只支持python 3.9及以上版本。
-- 目前Typhon只支持linux沙箱。
-- 目前Typhon尚无法绕过audithook沙箱。
-- 由于Typhon采用局部最优的递归策略，对于一些简单的题目，反而需要耗时更久（约1min）。
-- 目前已知的不支持的bypass方法：
+- Currently, Typhon only supports Python 3.9 and above.
+- Currently, Typhon only supports Linux sandboxes.
+- Currently, Typhon cannot bypass audithook sandboxes.
+- Due to Typhon's locally optimal recursive strategy, it may take longer (about 1 minute) for some simple challenges.
+- Currently known unsupported bypass methods:
 
-  - Typhon不支持以`list.pop(0)`代替`list[0]`，这是因为Typhon所生成的payload都需要经过本地执行验证才能成立，而`pop`方法在验证时会将元素从列表中删除，从而破坏后续环境。
+  - Typhon does not support using `list.pop(0)` instead of `list[0]`, because all payloads generated by Typhon need to be verified through local execution to be valid, and the `pop` method will delete elements from the list during verification, thus breaking the subsequent environment.
 
 ## Milestones
 
-### v1.0 （已发布）
+### v1.0 (Released)
 
-- [x] 实现基本框架
+- [x] Implement basic framework
 
 ### v1.1
 
-- [ ] 实现更多绕过器
-    - [x] 使用魔术方法替换二元运算符 (`a.__add__(b)`替换`a+b`)
-    - [ ] `list.pop(0)`替换`list[0]`
-    - [x] `list(dict(a=1))[0]`替换`'a'`
-    - [x] `str()`替换空字符串
-- [ ] 实现内置的bash bypasser 
-- [x] 更好的`bypassREAD`函数  
-- [x] 实现白名单功能
-- [x] 自动寻找`bytes`
+- [ ] Implement more bypassers
+    - [x] Use magic methods to replace binary operators (`a.__add__(b)` instead of `a+b`)
+    - [ ] `list.pop(0)` instead of `list[0]`
+    - [x] `list(dict(a=1))[0]` instead of `'a'`
+    - [x] `str()` instead of empty string
+- [ ] Implement built-in bash bypasser 
+- [x] Better `bypassREAD` function  
+- [x] Implement whitelist functionality
+- [x] Automatically find `bytes`
 
 ### v1.2
 
-- [ ] 实现`audithook`沙箱的绕过  
-- [ ] 在没有长度限制的情况下，不使用局部长度最优的递归算法
-- [ ] 实现`bypassENV`函数，用于环境变量的读取
+- [ ] Implement `audithook` sandbox bypass  
+- [ ] In the absence of length restrictions, do not use locally length-optimal recursive algorithm
+- [ ] Implement `bypassENV` function for reading environment variables
 
 ## Contributing
 
-### 提供Typhon无法解出的题目
+### Provide challenges that Typhon cannot solve
 
-我们将长期收集Typhon无法解出的题目。这对提升工具性能及其重要！如果你碰到无法一把梭的题目，请于本仓库打开issue，并写明题目来源（最好有对应的题解），我们会尽可能实现对该题目的自动求解。
+We will collect challenges that Typhon cannot solve for a long time. This is very important for improving tool performance! If you encounter a challenge that cannot be solved with one click, please open an issue in this repository and write the challenge source (preferably with a corresponding solution), and we will try our best to implement automatic solving for the challenge.
 
-作为回报，我们会在下一个release版本中囊括您的github ID。
+In return, we will include your GitHub ID in the next release version.
 
 ## Credits
 
@@ -329,7 +332,7 @@ Typhon的workflow顺序如下：
 
 **Contributors**
 
-感谢所有对此项目做过贡献的人：
+Thanks to everyone who has contributed to this project:
 
 <a href="https://github.com/eryajf/learn-github/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Team-intN18-SoybeanSeclab/Typhon" />
@@ -337,29 +340,29 @@ Typhon的workflow顺序如下：
 
 **Copyright**
 
-针对bash绕过的内置绕过器，感谢[bashFuck](https://github.com/ProbiusOfficial/bashFuck)项目的作者@ [ProbiusOfficial](https://github.com/ProbiusOfficial)，其[License](https://github.com/ProbiusOfficial/bashFuck/blob/main/README.md)于此。
+For the built-in bypasser for bash bypass, thanks to the author of the [bashFuck](https://github.com/ProbiusOfficial/bashFuck) project @ [ProbiusOfficial](https://github.com/ProbiusOfficial), whose [License](https://github.com/ProbiusOfficial/bashFuck/blob/main/README.md) is here.
 
 Copyright (c) 2024 ProbiusOfficial.
 
-下游项目（若有）请务必涵盖此。
+Downstream projects (if any) must include this.
 
-另：当前版本中尚未添加此功能。此copyright信息为预先保留。
+Note: This feature has not been added in the current version. This copyright information is reserved in advance.
 
-**Speical Thanks**
+**Special Thanks**
 
-@ [黄豆安全实验室](https://hdsec.cn)给予我必须的鼓励  
-@ [pyjailbreaker](https://github.com/jailctf/pyjailbreaker)项目给予我启发  
+@ [黄豆安全实验室](https://hdsec.cn) for giving me the necessary encouragement  
+@ [pyjailbreaker](https://github.com/jailctf/pyjailbreaker) project for inspiring me  
 
 ## License
 
-这个项目在[Apache 2.0](https://github.com/LamentXU123/Typhon/blob/main/LICENSE)协议下发布。
+This project is released under the [Apache 2.0](https://github.com/LamentXU123/Typhon/blob/main/LICENSE) license.
 
 Copyright (c) 2025 Weilin Du.
 
-## 404星链计划
+## 404 StarLink Project
 <img src="https://github.com/knownsec/404StarLink/raw/master/Images/logo.png" width="30%">
 
-Typhon 现已加入 [404星链计划](https://github.com/knownsec/404StarLink)
+Typhon has joined the [404 StarLink Project](https://github.com/knownsec/404StarLink)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Team-intN18-SoybeanSeclab/Typhon&type=Date&theme=dark" />
