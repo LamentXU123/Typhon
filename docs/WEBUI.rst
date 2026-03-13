@@ -1,7 +1,7 @@
 WEBUI 网页界面
 =================
 
-.. image:: https://github.com/Team-intN18-SoybeanSeclab/Typhon/blob/main/image/web_ui_example.png?raw=true
+.. image:: https://picui.ogmua.cn/s1/2026/03/13/69b3f7cd39186.webp
 
 ``Typhon`` 内置一个轻量的 WebUI（仅使用 Python 标准库），用于在浏览器中调用 :func:`~Typhon.bypassRCE` / :func:`~Typhon.bypassREAD`。
 
@@ -49,8 +49,6 @@ WEBUI 网页界面
 
       这与在题目代码中内联 ``bypassRCE/bypassREAD`` 的效果等价——当 WebUI 中 "Local Scope"
       字段留空时，将自动使用此注入的变量空间，无需手动输入。这样, 就可以引入命名空间内题目自定义的变量。
-
-      .. image:: https://github.com/Team-intN18-SoybeanSeclab/Typhon/blob/main/image/local_scope_injected_banner.png?raw=true
 
       此参数默认为 ``True``。
 

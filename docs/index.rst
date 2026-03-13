@@ -6,6 +6,8 @@
 Typhon: 最好的 CTF pyjail 沙箱逃逸自动化解题工具
 ============================================================
 
+.. image:: https://picui.ogmua.cn/s1/2026/03/13/69b3f7ccd8d5a.webp
+
 ``Typhon`` 是一款基于 python3 的开源工具，旨在为 CTF 选手提供方便的 pyjail 自动化解决工具。
 
 你当前所阅读的是 ``Typhon`` 1.0.13 文档。此版本 ``Typhon`` 主要完善了网页用户界面（web ui），具体见 :doc:`WEBUI` 文档。
