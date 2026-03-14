@@ -11,7 +11,7 @@ USAGE 用户指南
 
 ``Typhon`` 安装完成后，您可以使用如下终点函数进行绕过：
 
-.. py:function:: bypassRCE(cmd, local_scope: dict = None, banned_chr: list = [], allowed_chr: list = [], banned_ast: list = [], banned_re: list = [],max_length: int = None,allow_unicode_bypass: bool = False, print_all_payload: bool = False,interactive: bool = True,depth: int = 5,recursion_limit: int = 200,log_level: str = "INFO",)
+.. py:function:: bypassRCE(cmd, local_scope: dict = None, banned_chr: list = [], allowed_chr: list = [], banned_ast: list = [], banned_re: list = [], max_length: int = None, allow_unicode_bypass: bool = False, print_all_payload: bool = False,interactive: bool = True,depth: int = 5,recursion_limit: int = 200,log_level: str = "INFO",)
 
     .. py:attribute:: cmd
 
@@ -62,6 +62,15 @@ USAGE 用户指南
         ``locals`` 又存在 ``globals`` 时，``locals`` 变量将会覆盖 ``globals`` 变量。因此，我们将 ``local_scope`` 设置为
         ``globals`` 和 ``locals`` 的交集即可（若有重复元素，则以 ``locals`` 为准）。
 
+    .. py:attribute:: interactive
+
+        沙箱环境是否为交互式模式。换句话说，是否允许 ``stdin``，或是否允许用户再执行完命令后再次输入。
+        当 ``interactive`` 为 ``True`` 时，``Typhon`` 会尝试使用 ``help()``， ``breakpoint`` 攻击沙箱。
+
+        这个参数在面对一些 web 沙箱题目时非常有用。具体可见例题： `0xgame 2025 week3 <https://typhon.lamentxu.top/zh-cn/latest/EXAMPLE.html#xgame-2025-1-2>`_
+
+        本参数默认为 ``True``。
+
     .. py:attribute:: banned_chr
 
         禁止使用的字符列表。
@@ -109,15 +118,6 @@ USAGE 用户指南
         是否打印所有有效载荷。若为 ``True``，则 ``Typhon`` 会打印所有有效载荷，而非仅打印第一个有效载荷。
 
         本参数默认为 ``False``。
-
-    .. py:attribute:: interactive
-
-        沙箱环境是否为交互式模式。换句话说，是否允许 ``stdin``，或是否允许用户再执行完命令后再次输入。
-        当 ``interactive`` 为 ``True`` 时，``Typhon`` 会尝试使用 ``help()``， ``breakpoint`` 攻击沙箱。
-
-        这个参数在面对一些 web 沙箱题目时非常有用。具体可见例题： `0xgame 2025 week3 <https://typhon.lamentxu.top/zh-cn/latest/EXAMPLE.html#xgame-2025-1-2>`_
-
-        本参数默认为 ``True``。
 
     .. py:attribute:: depth
 

@@ -26,6 +26,7 @@ Typhon: 最好的 CTF pyjail 沙箱逃逸自动化解题工具
          banned_re = '*.to*.',
          banned_ast = [ast.Typhon],
          max_length = 1337,
+         interactive = True
       )
 
 :download:`下载项目源码 <https://github.com/Team-intN18-SoybeanSeclab/Typhon/archive/refs/heads/main.zip>`
