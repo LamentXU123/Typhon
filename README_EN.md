@@ -371,6 +371,6 @@ Typhon has joined the [404 StarLink Project](https://github.com/knownsec/404Star
 
 [![Stargazers over time](https://starchart.cc/LamentXU123/Typhon.svg?variant=adaptive)](https://starchart.cc/LamentXU123/Typhon)
 
-## PIP trends
+### PIP trends
 
 [![typhonbreaker Widget](https://assets.piptrends.com/get-widget/typhonbreaker.svg 'typhonbreaker Widget by pip Trends')](https://piptrends.com/package/typhonbreaker)
