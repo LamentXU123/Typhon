@@ -7,7 +7,7 @@
 ![Tests](https://github.com/Team-intN18-SoybeanSeclab/Typhon/actions/workflows/test.yml/badge.svg)
 [![codecov](https://codecov.io/gh/LamentXU123/Typhon/graph/badge.svg?token=JCH6XBAORY)](https://codecov.io/gh/LamentXU123/Typhon)
 
-[English](./README.md), [中文](./README_CN.md), [日本語](./README_JA.md)
+[中文](./README.md), [English](./README_EN.md), [日本語](./README_JA.md)
 
 聞いてくれ、俺はもうあの馬鹿げたCTF pyjailの問題にうんざりだ——毎回、長いブラックリストと様々なpyjailのまとめの中から、どのチェーンがフィルタリングされていないかを探したり、名前空間で一つ一つ`dir()`を実行して使えるものを探したりするのに時間を無駄にしている。これはもう拷問だ。
 
