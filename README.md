@@ -1,6 +1,6 @@
 # Typhon: Let's solve pyjail without brain  
 
-[![PyPI Downloads](https://static.pepy.tech/personalized-badge/typhonbreaker?period=total&units=ABBREVIATION&left_color=BLACK&right_color=GREEN&left_text=total%20downloads)](https://pepy.tech/projects/typhonbreaker)
+[![typhonbreaker Downloads Last Month](https://assets.piptrends.com/get-last-month-downloads-badge/typhonbreaker.svg 'typhonbreaker Downloads Last Month by pip Trends')](https://piptrends.com/package/typhonbreaker)
 ![License](https://img.shields.io/badge/license-Apache_2.0-cyan.svg)
 ![Python_version](https://img.shields.io/pypi/pyversions/TyphonBreaker.svg?logo=python&logoColor=FBE072)
 ![PyPI Version](https://img.shields.io/pypi/v/TyphonBreaker)
@@ -28,6 +28,7 @@ So this is Typhon, a one-click tool dedicated to letting you solve pyjail withou
 - [Contributing](#Contributing)  
 - [Credits](#Credits)  
 - [License](#License)  
+- [Misc](#Misc)
 
 ## Highlights
 
@@ -359,11 +360,17 @@ This project is released under the [Apache 2.0](https://github.com/LamentXU123/T
 
 Copyright (c) 2025 Weilin Du.
 
-## 404 StarLink Project
+## Misc
+
+### 404 StarLink Project
 <img src="https://github.com/knownsec/404StarLink/raw/master/Images/logo.png" width="30%">
 
 Typhon has joined the [404 StarLink Project](https://github.com/knownsec/404StarLink)
 
-## Stars
+### Stars
 
 [![Stargazers over time](https://starchart.cc/LamentXU123/Typhon.svg?variant=adaptive)](https://starchart.cc/LamentXU123/Typhon)
+
+## PIP trends
+
+[![typhonbreaker Widget](https://assets.piptrends.com/get-widget/typhonbreaker.svg 'typhonbreaker Widget by pip Trends')](https://piptrends.com/package/typhonbreaker)
