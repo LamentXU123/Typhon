@@ -627,7 +627,7 @@ Try to bypass blacklist with them. Please be paitent.",
                                 builtin_module_payload = i
                                 tags.append("MODULE_BUILTINS")
                                 generated_path["MODULE_BUILTINS"] = i
-                            builtin_module_found_count += 1                            
+                            builtin_module_found_count += 1
                     elif check_result == builtins and type(check_result) == ModuleType:
                         if not builtin_module_found_count:
                             logger.info(
