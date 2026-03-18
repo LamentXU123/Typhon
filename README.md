@@ -1,6 +1,6 @@
 # Typhon: Lets solve pyjail without brain  
 
-[![typhonbreaker Downloads Last Month](https://assets.piptrends.com/get-last-month-downloads-badge/typhonbreaker.svg 'typhonbreaker Downloads Last Month by pip Trends')](https://piptrends.com/package/typhonbreaker)
+![Total Downloads](https://static.pepy.tech/personalized-badge/typhonbreaker?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)
 ![License](https://img.shields.io/badge/license-Apache_2.0-cyan.svg)
 ![Python_version](https://img.shields.io/pypi/pyversions/TyphonBreaker.svg?logo=python&logoColor=FBE072)
 ![PyPI Version](https://img.shields.io/pypi/v/TyphonBreaker)
