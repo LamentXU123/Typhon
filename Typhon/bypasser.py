@@ -718,6 +718,78 @@ class BypassGenerator:
         """
         return payload.replace(";", "\n")
 
+    @general_bypasser
+    def string_to_adjacent_literals(self, payload: str) -> str:
+        """
+        Collapse string literal additions into adjacent literals.
+        'a'+'b' -> 'a''b'
+        """
+
+        def is_str_const(node: ast.AST) -> bool:
+            return isinstance(node, ast.Constant) and isinstance(node.value, str)
+
+        def rebuild_add_chain(nodes: List[ast.AST]) -> ast.AST:
+            if len(nodes) == 1:
+                return nodes[0]
+            return reduce(
+                lambda left, right: ast.BinOp(left=left, op=ast.Add(), right=right),
+                nodes,
+            )
+
+        class Transformer(ast.NodeTransformer):
+            def __init__(self):
+                self.replacements = {}
+                self.counter = 0
+
+            def new_placeholder(self) -> str:
+                placeholder = f"__TYPHON_LITERAL_CONCAT_{self.counter}__"
+                self.counter += 1
+                return placeholder
+
+            def visit_BinOp(self, node: ast.BinOp):
+                if not isinstance(node.op, ast.Add):
+                    return self.generic_visit(node)
+
+                parts = [self.visit(part) for part in flatten_add_chain(node)]
+                collapsed_parts = []
+                changed = False
+                index = 0
+                while index < len(parts):
+                    if is_str_const(parts[index]):
+                        run = [parts[index]]
+                        index += 1
+                        while index < len(parts) and is_str_const(parts[index]):
+                            run.append(parts[index])
+                            index += 1
+                        if len(run) > 1:
+                            placeholder = self.new_placeholder()
+                            self.replacements[placeholder] = "".join(
+                                repr(part.value) for part in run
+                            )
+                            collapsed_parts.append(
+                                ast.Name(id=placeholder, ctx=ast.Load())
+                            )
+                            changed = True
+                            continue
+                        collapsed_parts.extend(run)
+                        continue
+
+                    collapsed_parts.append(parts[index])
+                    index += 1
+
+                if not changed:
+                    return rebuild_add_chain(parts)
+                return rebuild_add_chain(collapsed_parts)
+
+        tree = ast.parse(payload, mode="eval")
+        transformer = Transformer()
+        new_body = transformer.visit(tree.body)
+        ast.fix_missing_locations(new_body)
+        emitted = ast.unparse(new_body)
+        for placeholder, literal_group in transformer.replacements.items():
+            emitted = emitted.replace(placeholder, literal_group)
+        return emitted
+
     @bypasser_must_work_with(["string_slicing"])
     def string_to_str_join(self, payload: str) -> str:
         """
