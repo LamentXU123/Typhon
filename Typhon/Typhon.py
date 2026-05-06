@@ -52,7 +52,7 @@ BANNER = (
     + sys.version.split()[0]
     + r"""
    / _{    \__/ '--.  //       [Github]: https://github.com/Team-intN18-SoybeanSeclab/Typhon
-   \_> \_\  >__/    \((        [Author]: LamentXU <lamentxu644@gmail.com>
+   \_> \_\  >__/    \((        [Author]: LamentXU <lamentxu644@gmail.com> & Hu@ngDoW <root@ctf.vin>
         _/ /` _\_   |))       
 """
 )
