@@ -920,6 +920,39 @@ class BypassGenerator:
         ast.fix_missing_locations(new_body)
         return emit_min(new_body, name)
 
+    @general_bypasser
+    def int_to_len(self, payload: str) -> str:
+        """
+        97 -> len('.................................................................................................')
+        Only used when at least one digit is blacklisted.
+        """
+        # Only fire when digits are actually blacklisted
+        if not any(self.is_blacklisted(d) for d in digits):
+            return payload
+
+        name = self.find_object(len, self.local_scope)
+        if name is None:
+            return payload
+
+        class Transformer(ast.NodeTransformer):
+            def visit_Constant(self, node):
+                if (
+                    isinstance(node.value, int)
+                    and not isinstance(node.value, bool)
+                    and 0 <= node.value <= 10000
+                ):
+                    return ast.Call(
+                        func=ast.Name(id=name, ctx=ast.Load()),
+                        args=[ast.Constant(value="." * node.value)],
+                        keywords=[],
+                    )
+                return node
+
+        tree = ast.parse(payload, mode="eval")
+        new_body = Transformer().visit(tree.body)
+        ast.fix_missing_locations(new_body)
+        return ast.unparse(new_body)
+
     @bypasser_must_work_with(["string_slicing"])
     def string_to_bytes_plus(self, payload: str) -> str:
         """
