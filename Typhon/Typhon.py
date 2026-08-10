@@ -546,20 +546,17 @@ Try to bypass blacklist with them. Please be paitent.",
     logger.info("[*] string literals found: %s", string_dict)
     allowed_letters.extend(string_dict.keys())
     for i in digits:
+        n = int(i)
         if not is_blacklisted(i):
-            int_dict.update({int(i): i})
+            int_dict.update({n: i})
             continue
-        # tyr bool bypass
-        if i == 0 and is_blacklisted("False"):
-            if not is_blacklisted("False.real"):
-                int_dict.update({int(i): "False.real"})
-            if not is_blacklisted("False.imag"):
-                int_dict.update({int(i): "False.imag"})
-            if not is_blacklisted("+"):
-                int_dict.update({int(i): "False+False"})
+        # try zero-letter bool bypass
+        if n == 0:
+            if not is_blacklisted("([]!=[])"):
+                int_dict.update({n: "([]!=[])"})
         else:
-            if not is_blacklisted(f"True" + "+True" * (int(i) - 1)):
-                int_dict.update({int(i): f"True" + "+True" * int(i - 1)})
+            if not is_blacklisted("+".join(["([]==[])"] * n)):
+                int_dict.update({n: "+".join(["([]==[])"] * n)})
         # TODO: bypassers to get ints
     logger.info("[*] int literals found: %s", int_dict)
 

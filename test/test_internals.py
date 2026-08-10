@@ -130,6 +130,20 @@ class TestTyphonRCE(unittest.TestCase):
                     )
                 del Typhon
                 mock_exit.assert_called_with(0)
+            with patch("builtins.exit") as mock_exit:
+                mock_exit.side_effect = RuntimeError("Test")
+                import Typhon
+
+                with self.assertRaises(RuntimeError):
+                    Typhon.bypassRCE(
+                        cmd="whoami",
+                        interactive=False,
+                        banned_re=[r"[a-zA-Z0-9]"],
+                        allow_unicode_bypass=True,
+                        local_scope={},
+                    )
+                del Typhon
+                mock_exit.assert_called_with(0)
 
 
 class TestTyphonREAD(unittest.TestCase):
