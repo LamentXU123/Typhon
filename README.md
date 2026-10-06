@@ -1,3 +1,5 @@
+# 由于 AI 在解决 pyjail 问题上已经足够强大，本项目已经失去了生态位。因此，本项目不再维护。
+
 # Typhon: Lets solve pyjail without brain  
 
 ![Total Downloads](https://static.pepy.tech/personalized-badge/typhonbreaker?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)
