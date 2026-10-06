@@ -1,3 +1,5 @@
+# Since AI is strong enough in one-shotting pyjail chanllenge. This project will NOT be maintained.
+
 # Typhon: Let's solve pyjail without brain  
 
 [![typhonbreaker Downloads Last Month](https://assets.piptrends.com/get-last-month-downloads-badge/typhonbreaker.svg 'typhonbreaker Downloads Last Month by pip Trends')](https://piptrends.com/package/typhonbreaker)
